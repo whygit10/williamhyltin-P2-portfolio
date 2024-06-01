@@ -1,14 +1,22 @@
 ---
 title: "About me"
+format: 
+   html:
+     include-in-header: 
+        text: |
+          <style>
+          h1 {
+          color: rgb(255, 255, 255);
+          }
+          </style>
 ---
 
 <style>
   body {
-  background-image: url("https://images.pexels.com/photos/189349/pexels-photo-189349.jpeg");
+  background-image: url("https://github.com/whygit10/williamhyltin-P2-portfolio/blob/main/Analysis_Paralysis.jpg?raw=true");
   background-size: cover;
   background-repeat: no-repeat;
 }
-  
 </style>
 
 ## A man who needs no introduction, but since you're here
@@ -17,7 +25,7 @@ My name is William Hyltin, I am currently a student in the Master of Science in 
 
 ## Work as a Reporting Analyst
 
-My work as a reporting analyst was rotational, and had me on a team of several other Startegy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like drilling down into the reasons for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.
+My work as a reporting analyst was rotational, and had me on a team of several other Strategy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like drilling down into the reasons for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.
 
 ## Work as a Business Strategy Analyst
 
