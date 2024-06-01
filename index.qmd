@@ -1,15 +1,17 @@
 ---
-title: "My website and data analysis portfolio"
+title: "Welcome to my website and data analysis profile"
 ---
 
-# Hello
+### Pardon the Dust
 
-### And hello again
+This site is intended to serve as a repository for different analytic exercises and assignments done over the course of my education in the Data Analytics Masters Program at UTSA. In it you can expect to find:
 
-Welcome to **my website** and _data analysis portfolio._ 
+-   Analyses
+-   Visualizations
+-   Applications of statistical methods
+-   The slow spiral of a man drowning in the sea of his own imposter syndrome
+-   Insights, hopefully
 
+Please use the `Menu Bar` at the top to peruse to your liking.
 
-* Please use the `Menu Bar` above to look around.
-* Have fun!
-
-**Feel free to change this text any way you want 😁!**
+**Analytics is a combination of both art and science. Incidentally, robots are already better than us at both, but here's to trying.**
