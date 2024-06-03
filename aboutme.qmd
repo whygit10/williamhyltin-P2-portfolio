@@ -1,23 +1,28 @@
 ---
 title: "About me"
-format: 
-   html:
-     include-in-header: 
-        text: |
-          <style>
-          h1 {
-          color: rgb(255, 255, 255);
-          }
-          </style>
+title-block-banner: "#170237b3"
+title-block-banner-color: white
+execute: 
+  eval: true
+  echo: false
 ---
+```{r}
+rndpct <- sample(60:90, 1)
+```
 
+```{=html}
 <style>
   body {
   background-image: url("https://github.com/whygit10/williamhyltin-P2-portfolio/blob/main/Analysis_Paralysis.jpg?raw=true");
   background-size: cover;
   background-repeat: no-repeat;
+  background-attachment: fixed
 }
 </style>
+```
+::::: columns
+::: {.column width="100%"}
+:::: {style="background-color: rgba(23,2,55,0.8); padding-left: 15px; padding-right: 15px; color: white"}
 
 ## A man who needs no introduction, but since you're here
 
@@ -25,8 +30,20 @@ My name is William Hyltin, I am currently a student in the Master of Science in 
 
 ## Work as a Reporting Analyst
 
-My work as a reporting analyst was rotational, and had me on a team of several other Strategy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like drilling down into the reasons for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.
+My work as a reporting analyst was rotational, and had me on a team of several other Strategy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like root cause analysis for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.
 
 ## Work as a Business Strategy Analyst
 
-It has often been said to me that analysts will spend `r sample(60:90, 1)`% of their time massaging their data before they can start on the "real" analytic work. My role as a Business Strategy Analyst is intended to combat that. I work on a team whose purpose is to identify meaningful transactions or events that our customers are performing in complex and often disparate data, and translating this data into a consumable format so that Analysts can spend more time focusing on answering the questions at hand.This is similar to what a Data Engineer might do, but with a greater focus on how the business itself operates, and what an analyst would 
+It has often been said to me that analysts will spend `{r} rndpct`% of their time massaging their data before they can start on the "real" analytic work. My role as a Business Strategy Analyst is intended to combat that. I work on a team whose purpose is to identify meaningful transactions or events that our customers are performing in complex and often disparate data, and translating this data into a consumable format so that Analysts can spend more time focusing on answering the questions at hand. This is similar to what a Data Engineer might do, but with a greater focus on how the business itself operates, and what an analyst would be looking for given a request from the business. This also means that analyses that we do are usually done in the name of accuracy over insight, and there is less of an opportunity for statistic methods outside of things like frequency-related measures and the occasional descriptive statistic.
+
+## Course Aspirations
+
+The genesis of this site is from my Practicum II class for my Masters Program, in which I am excited about the opportunity to create a proper portfolio for myself. I see it as a means of displaying the kind of real work I am capable of, and as a way to inspire myself to take on [more](https://xkcd.com/2582/) curiosity projects that go beyond the requirements of formal education and my profession. I'm also excited for the opportunity to use more R, since its not a language I get to use often but when I do I always enjoy it. 
+
+## But enough about me, let's talk about yours truly
+
+Beyond my professional and educational experience, I have a number of other interests that I struggle to make time for. I play dungeons and dragons fairly regularly on the weekends with a few other friends. I enjoy reading, particularly horror and classic science fiction (think more Flowers for Algernon and Invisible Man than Ender's Game). My girlfriend and I like going to concerts when we can, most recent standouts have been the reunion tour for the Postal Service and a Hot Mulligan show where one of the openers threw Burger Boy burgers into the crowd. I have two kids, a 6 year old aspiring princess/ doctor/ dancer/ singer/ chef, and a soon to be 14 year old son who is a trumpet and piano master with aspirations to become a music therapist.
+
+::::
+:::
+:::::

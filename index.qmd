@@ -1,10 +1,13 @@
 ---
 title: "Welcome to my website and data analysis profile"
+format: 
+   html:
+    fontcolor: black
 ---
 
 ### Pardon the Dust
 
-This site is intended to serve as a repository for different analytic exercises and assignments done over the course of my education in the Data Analytics Masters Program at UTSA. In it you can expect to find:
+This site is intended to serve as a repository for different analytic exercises and assignments done over the course of my education in the Data Analytics Masters Program at UTSA and beyond. This means that this site will be perpetually under construction. Here you can expect to find:
 
 -   Analyses
 -   Visualizations
@@ -13,5 +16,19 @@ This site is intended to serve as a repository for different analytic exercises 
 -   Insights, hopefully
 
 Please use the `Menu Bar` at the top to peruse to your liking.
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
-**Analytics is a combination of both art and science. Incidentally, robots are already better than us at both, but here's to trying.**
+***Analytics is a combination of both art and science. Incidentally, robots are already better than us at both, but here's to trying.***

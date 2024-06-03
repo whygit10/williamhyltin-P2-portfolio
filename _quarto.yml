@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "YOURNAME Data Analysis Portfolio"
+  title: "William Hyltin Data Analysis Portfolio"
   navbar:
     left:
       - text: "About Me"
@@ -20,11 +20,12 @@ website:
             file: tidytuesday-exercise/tidytuesday-exercise.qmd
     right:
       - icon: github 
-        href: URL-TO-THIS-REPOSITORY-HERE        
+        href: https://github.com/whygit10/williamhyltin-P2-portfolio 
+    background: "#303030"
 
 format:
   html:
-    theme: cosmo
+    theme: darkly
     highlight: zenburn
     css: styles.css
     toc: FALSE
