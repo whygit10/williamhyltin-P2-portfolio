@@ -9,7 +9,6 @@ execute:
 ```{r}
 rndpct <- sample(60:90, 1)
 ```
-
 ```{=html}
 <style>
   body {
@@ -28,17 +27,25 @@ rndpct <- sample(60:90, 1)
 
 My name is William Hyltin, I am currently a student in the Master of Science in Data Analytics program at the University of Texas at San Antonio. I have roughly 2 years of experience as an analyst, a year and a half as a Reporting Analyst for Omnichannel Analytics for a bank, and about 4 months of experience as a Business Strategy Analyst for the Actuary and Analytics organization of an insurance company. Professionally I've had the opportunity to use a number of different platforms, to include SQL (Snowflake, PROC SQL, and some SQL Server), SAS Enterprise Guide, Minitab, and Excel. Educationally I've had the opportunity to use R, Tableau, SAS (both Base and Enterprise Guide), and Python. Prior to working as an Analyst I worked for a call center as a phone representative, but my aspirations at the time had been to be come an Actuary, for which I was able to complete the first two exams (Probability and Financial Markets). It was ultimately several rejections for an entry level actuarial role that lead to me to my job as a Reporting Analyst, but I am finding that these more Data Analyst and adjacent roles are more enjoyable than the work I would have been doing as an Actuary.
 
+
+
 ## Work as a Reporting Analyst
 
 My work as a reporting analyst was rotational, and had me on a team of several other Strategy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like root cause analysis for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.
+
+
 
 ## Work as a Business Strategy Analyst
 
 It has often been said to me that analysts will spend `{r} rndpct`% of their time massaging their data before they can start on the "real" analytic work. My role as a Business Strategy Analyst is intended to combat that. I work on a team whose purpose is to identify meaningful transactions or events that our customers are performing in complex and often disparate data, and translating this data into a consumable format so that Analysts can spend more time focusing on answering the questions at hand. This is similar to what a Data Engineer might do, but with a greater focus on how the business itself operates, and what an analyst would be looking for given a request from the business. This also means that analyses that we do are usually done in the name of accuracy over insight, and there is less of an opportunity for statistic methods outside of things like frequency-related measures and the occasional descriptive statistic.
 
+
+
 ## Course Aspirations
 
 The genesis of this site is from my Practicum II class for my Masters Program, in which I am excited about the opportunity to create a proper portfolio for myself. I see it as a means of displaying the kind of real work I am capable of, and as a way to inspire myself to take on [more](https://xkcd.com/2582/) curiosity projects that go beyond the requirements of formal education and my profession. I'm also excited for the opportunity to use more R, since its not a language I get to use often but when I do I always enjoy it. 
+
+
 
 ## But enough about me, let's talk about yours truly
 
