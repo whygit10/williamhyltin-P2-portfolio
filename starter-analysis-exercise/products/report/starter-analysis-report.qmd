@@ -39,7 +39,7 @@ _Write a summary of your project._
 _Provide enough background on your topic that others can understand the why and how of your analysis_ 
 
 ## Description of data and data source
-_Describe what the data is, what it contains, where it is from, etc. Eventually this might be part of a methods section._
+In addition to the standard variables of Height (in centimeters), Weight (in kilograms), and identified gender (Male, Female, Other), I have included twp additional variables: Generation and Salary. Generation represents the respondents age categorized into the self reported generation to which they belong, e.g. Gen Z are those with birth years between 1995 and 2012. Salary is the self reported annual salary in thousands of US dollars, e.g. a value of 70 would represent an annual salary of $70,000.
 
 ## Questions/Hypotheses to be addressed
 _State the research questions you plan to answer with this analysis._
