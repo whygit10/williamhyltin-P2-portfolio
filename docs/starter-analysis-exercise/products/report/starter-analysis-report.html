@@ -6,8 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Your Name">
-<meta name="dcterms.date" content="2024-06-02">
+<meta name="author" content="William Hyltin">
+<meta name="dcterms.date" content="2024-06-11">
 
 <title>William Hyltin Data Analysis Portfolio - Manuscript/Report Template for a Data Analysis Project</title>
 <style>
@@ -171,14 +171,14 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Your Name </p>
+             <p>William Hyltin </p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 2, 2024</p>
+      <p class="date">June 11, 2024</p>
     </div>
   </div>
   
@@ -190,6 +190,7 @@ div.csl-indent {
 </header>
 
 
+<p><em>Antonio Flores contributed to this exercise.</em></p>
 <p>The structure below is one possible setup for a data analysis project (including the course project). For a manuscript, adjust as needed. You don’t need to have exactly these sections, but the content covering those sections should be addressed.</p>
 <p>This uses MS Word as output format. <a href="https://quarto.org/docs/output-formats/ms-word.html">See here</a> for more information. You can switch to other formats, like html or pdf. See <a href="https://quarto.org/">the Quarto documentation</a> for other formats.</p>
 <section id="summaryabstract" class="level1" data-number="1">
@@ -205,7 +206,7 @@ div.csl-indent {
 </section>
 <section id="description-of-data-and-data-source" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="description-of-data-and-data-source"><span class="header-section-number">2.2</span> Description of data and data source</h2>
-<p><em>Describe what the data is, what it contains, where it is from, etc. Eventually this might be part of a methods section.</em></p>
+<p>In addition to the standard variables of Height (in centimeters), Weight (in kilograms), and identified gender (Male, Female, Other), I have included twp additional variables: Generation and Salary. Generation represents the respondents age categorized into the self reported generation to which they belong, e.g.&nbsp;Gen Z are those with birth years between 1995 and 2012. Salary is the self reported annual salary in thousands of US dollars, e.g.&nbsp;a value of 70 would represent an annual salary of $70,000.</p>
 </section>
 <section id="questionshypotheses-to-be-addressed" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="questionshypotheses-to-be-addressed"><span class="header-section-number">2.3</span> Questions/Hypotheses to be addressed</h2>
@@ -249,19 +250,19 @@ Table&nbsp;1: Data summary table.
 <div class="cell-output-display">
 <table class="do-not-create-environment cell table table-sm table-striped small">
 <colgroup>
-<col style="width: 5%">
+<col style="width: 4%">
+<col style="width: 6%">
+<col style="width: 4%">
+<col style="width: 6%">
 <col style="width: 7%">
-<col style="width: 5%">
 <col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 8%">
-<col style="width: 9%">
+<col style="width: 14%">
 <col style="width: 6%">
 <col style="width: 5%">
 <col style="width: 5%">
-<col style="width: 6%">
-<col style="width: 6%">
-<col style="width: 6%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 5%">
 <col style="width: 6%">
 <col style="width: 6%">
 </colgroup>
@@ -303,6 +304,23 @@ Table&nbsp;1: Data summary table.
 <td style="text-align: left;">NA</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">factor</td>
+<td style="text-align: left;">Generation</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Gen: 5, Gen: 2, Bab: 1, Mil: 1</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">numeric</td>
 <td style="text-align: left;">Height</td>
 <td style="text-align: right;">0</td>
@@ -319,7 +337,7 @@ Table&nbsp;1: Data summary table.
 <td style="text-align: right;">183</td>
 <td style="text-align: left;">▂▁▃▃▇</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">numeric</td>
 <td style="text-align: left;">Weight</td>
 <td style="text-align: right;">0</td>
@@ -335,6 +353,23 @@ Table&nbsp;1: Data summary table.
 <td style="text-align: right;">80</td>
 <td style="text-align: right;">110</td>
 <td style="text-align: left;">▇▂▃▂▂</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">Salary</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">95.44444</td>
+<td style="text-align: right;">36.62005</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;">81</td>
+<td style="text-align: right;">133</td>
+<td style="text-align: right;">144</td>
+<td style="text-align: left;">▂▇▂▁▆</td>
 </tr>
 </tbody>
 </table>
@@ -445,13 +480,108 @@ Table&nbsp;2: Linear model fit table.
 </section>
 </section>
 <section id="references" class="level1" data-number="6">
-
+<h1 data-number="6"><span class="header-section-number">6</span> References</h1>
+</section>
+<section id="additional-variables-visualizations-and-tables" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Additional Variables, Visualizations, and Tables</h1>
+<div class="cell">
+<div id="tbl-resulttable3" class="cell quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-resulttable3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Linear model fit table for additional variables.
+</figcaption>
+<div aria-describedby="tbl-resulttable3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">term</th>
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">std.error</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">178.2445471</td>
+<td style="text-align: right;">26.1020484</td>
+<td style="text-align: right;">6.8287571</td>
+<td style="text-align: right;">0.0024050</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Salary</td>
+<td style="text-align: right;">-0.0035963</td>
+<td style="text-align: right;">0.2703272</td>
+<td style="text-align: right;">-0.0133034</td>
+<td style="text-align: right;">0.9900228</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GenerationGen X</td>
+<td style="text-align: right;">-19.4662184</td>
+<td style="text-align: right;">22.6543233</td>
+<td style="text-align: right;">-0.8592717</td>
+<td style="text-align: right;">0.4386373</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">GenerationGen Z</td>
+<td style="text-align: right;">-7.5269721</td>
+<td style="text-align: right;">22.7865153</td>
+<td style="text-align: right;">-0.3303257</td>
+<td style="text-align: right;">0.7577308</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GenerationMillennial</td>
+<td style="text-align: right;">2.2733173</td>
+<td style="text-align: right;">33.3003184</td>
+<td style="text-align: right;">0.0682671</td>
+<td style="text-align: right;">0.9488493</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>The table of our linear model for the new variables concludes that there is not a linear relationship between Height and a respondents Age or Generation. Against an alpha level of 0.05, none of the variables were found to be statistically significant, so we would fail to reject the null hypothesis.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-result2" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-result2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../../results/figures/height-generation-boxplot.png" class="img-fluid figure-img" width="1050">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-result2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Height boxplot by generation.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The boxplots reveal how the distribution of Height across each generation differs. Generation X appears to have the most variation in Height, while Gen Z has relatively little variation and has a higher IQR. The Millennial and Baby Boomer generations had only one respondent each, so a greater sample size would be necessary to make a proper conclusion about the relationship between Height and Generation.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-result3" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-result3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../../results/figures/salary-weight-scatter.png" class="img-fluid figure-img" width="1050">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-result3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Height boxplot by generation.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The scatterplot of Weight and Salary appears to reveal more of a relationship. It appears that the larger a respondent’s Weight, the more likely they are to report a lower salary. There are some potential outliers that may contradict this conclusion, so further testing and sampling would be ideal to make a proper conclusion about the relationship.</p>
 
 
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">6 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
 <div id="ref-leek2015" class="csl-entry" role="listitem">
 Leek, J. T., &amp; Peng, R. D. (2015). Statistics. <span>What</span> is the question? <em>Science (New York, N.Y.)</em>, <em>347</em>(6228), 1314–1315. <a href="https://doi.org/10.1126/science.aaa6146">https://doi.org/10.1126/science.aaa6146</a>
 </div>
