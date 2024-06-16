@@ -1,5 +1,152 @@
 ---
 title: "R Coding Exercise"
+author: 'William Hyltin'
+date: today
+output: html_document
 ---
+This project is intended to serve as R coding practice, both for familiarity with R language and for some practice documenting code. We will be using the gapminder health and income dataset.
 
-Placeholder file for the future R coding exercise.
+Loading necessary packages for the project, I like to use `pacman::p_load()` because it checks for installation of packages before loading the library and automatically installs ones that I don't have, as well it allows me to load multiple in just one line. The only major downside is that it does require the installation of the `pacman` package to use. \
+
+-   `dslabs` in order to get the gapminder dataset.\
+-   `tidyverse` for its convenience in data cleaning and visualization.  
+
+```{r setup}
+pacman::p_load(dslabs, tidyverse)
+# I have the library versions commented out here for anyone needing to 
+# replicate this code that doesnt have the pacman package installed.
+
+#library(dslabs)
+#library(tidyverse)
+```
+
+Now we can take a look at the gapminder dataset. We start by using the `str()` function to get the Structure of the data. Then use the `summary()` function to get a quick summary of each of the variables in the dataset. Finally we use the `class()` function to confirm what type of object the gapminder dataset is.  
+```{r}
+#help(gapminder) #commented out for the sake of rendering later
+print('-----Data Structure-----') #these are just to make the outputs a little more readable.
+str(gapminder)
+
+print('-----Data Summary-----')
+summary(gapminder)
+
+print('-----Object Type-----')
+class(gapminder)
+```
+
+Now we can filter to the continent variable to just Africa. To do this I use the `dplyr` function `filter()` along with the pipe `%>%`. I primarily do this for readability, although subsetting with base R syntax would be just as easy to do. After that I use `str()` and `summary()` again to get the data structure and summaries.  
+```{r}
+africadata <- gapminder %>% filter(continent == 'Africa')
+
+print('-----Data Structure-----')
+str(africadata)
+
+print('-----Data Summary-----')
+summary(africadata)
+```
+
+Now we will create two new objects, `im.le` and `pop.le` to isolate variables of interest.  
+
+* `im.le` will consist of the variables `infant_mortality` and `life_expectancy`  
+* `pop.le` will consist of the variables `population` and `life_expectancy`  
+
+We will accomplish this by using again the pipe operator `%>%` and the `select()` function.  
+```{r}
+im.le <- africadata %>% select(infant_mortality, life_expectancy) 
+  # select() allows us to choose relevant columns for our new objects
+pop.le <- africadata %>% select(population, life_expectancy)
+
+print('-----Data Structure-----')
+print('---Population x Life Expectancy---')
+str(im.le)
+print('---Infant Mortality x Life Expectancy---')
+str(pop.le)
+
+print('-----Data Summary-----')
+print('---Population x Life Expectancy---')
+summary(im.le)
+print('---Infant Mortality x Life Expectancy---')
+summary(pop.le)
+```
+
+```{r}
+im.le %>% 
+  ggplot(aes(x=infant_mortality, y=life_expectancy)) +
+  geom_point() +
+  labs(x='Infant Mortality', y='Life Expectancy', 
+       title='Examination of Life Expectancy in African Countries', 
+       subtitle='Relationship of Infant Mortality and Life Expectancy')
+
+pop.le %>% 
+  ggplot(aes(x=population, y=life_expectancy)) +
+  coord_trans(x='log2') +
+  geom_point() +
+  labs(x='Population', y='Life Expectancy', 
+       title='Examination of Life Expectancy in African Countries', 
+       subtitle='Relationship of Population and Life Expectancy')
+```
+
+The charts imply a negative correlation between infant mortality and life expectancy, as well as a positive correlation between population and life expectancy. However the "streaks" of points that we are seeing are likely due to the `year` variable from our original dataset. What we are seeing is the year over year change in each country's life expectancy and infant mortality or population. We can isolate to one year in particular to avoid this.
+
+We will isolate to the year 2000 by using the dplyr `filter()` function again.
+```{r}
+im.le2000 <- africadata %>% 
+  filter(year == 2000) %>% 
+  select(infant_mortality, life_expectancy)
+
+pop.le2000 <- africadata %>% 
+  filter(year == 2000) %>% 
+  select(population, life_expectancy)
+
+print('-----Data Structure-----')
+print('---Population x Life Expectancy---')
+str(im.le2000)
+print('---Infant Mortality x Life Expectancy---')
+str(pop.le2000)
+
+print('-----Data Summary-----')
+print('---Population x Life Expectancy---')
+summary(im.le2000)
+print('---Infant Mortality x Life Expectancy---')
+summary(pop.le2000)
+```
+
+Repeating the process for our plots with the new data:
+```{r}
+im.le2000 %>% 
+  ggplot(aes(x=infant_mortality, y=life_expectancy)) +
+  geom_point() +
+  labs(x='Infant Mortality', y='Life Expectancy', 
+       title='Examination of Life Expectancy in African Countries', 
+       subtitle='Relationship of Infant Mortality and Life Expectancy During the Year 2000')
+
+pop.le2000 %>% 
+  ggplot(aes(x=population, y=life_expectancy)) +
+  coord_trans(x='log2') +
+  geom_point() +
+  labs(x='Population', y='Life Expectancy', 
+       title='Examination of Life Expectancy in African Countries', 
+       subtitle='Relationship of Population and Life Expectancy During the Year 2000')
+```
+
+We see there is still likely a relationship between infant mortality and life expectancy, but the relationship between population and life expectancy is less apparent, if it is still there at all. To get more conclusive results, we can fit a linear model between the variables using the `lm()` function.
+
+```{r}
+fit1 <- lm(life_expectancy~., data = im.le2000)
+#fits life expectancy as a function of infant mortality. 
+#Infant mortality is not explicitly listed since it is the only other variable in the object.
+
+fit2 <- lm(life_expectancy~., data = pop.le2000) 
+#fits life expectancy as a function of population. 
+#Population is not explicitly listed since it is the only other variable in the object.
+
+print('-----Life Expectancy as a function of Infant Mortality-----')
+summary(fit1) #summary of each linear model fit to get results.
+
+print('-----Life Expectancy as a function of Population-----')
+summary(fit2)
+
+```
+
+For the fit of Life Expectancy as a function of Infant Mortality, we see a p-value of 2.826e-08. Against an alpha-level of 0.05, we would conclude that there is a significant linear relationship between Infant Mortality and Life Expectancy.  
+
+For the fit of Life Expectancy as a function of Population, we see a p-value of 0.6159. Against an alpha-level of 0.05, we would conclude that there is not a significant linear relationship between Population and Life Expectancy.  
