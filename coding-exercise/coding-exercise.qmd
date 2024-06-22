@@ -12,12 +12,13 @@ Loading necessary packages for the project, I like to use `pacman::p_load()` bec
 -   `tidyverse` for its convenience in data cleaning and visualization.  
 
 ```{r setup}
-pacman::p_load(dslabs, tidyverse)
+pacman::p_load(dslabs, tidyverse, readxl)
 # I have the library versions commented out here for anyone needing to 
 # replicate this code that doesnt have the pacman package installed.
 
 #library(dslabs)
 #library(tidyverse)
+#library(readxl)
 ```
 
 Now we can take a look at the gapminder dataset. We start by using the `str()` function to get the Structure of the data. Then use the `summary()` function to get a quick summary of each of the variables in the dataset. Finally we use the `class()` function to confirm what type of object the gapminder dataset is.  
@@ -150,3 +151,189 @@ summary(fit2)
 For the fit of Life Expectancy as a function of Infant Mortality, we see a p-value of 2.826e-08. Against an alpha-level of 0.05, we would conclude that there is a significant linear relationship between Infant Mortality and Life Expectancy.  
 
 For the fit of Life Expectancy as a function of Population, we see a p-value of 0.6159. Against an alpha-level of 0.05, we would conclude that there is not a significant linear relationship between Population and Life Expectancy.  
+
+## The following section is contributed by ZANE CHUMLEY.
+
+### Pick a dataset
+
+```{r}
+# It's an election year, so let's look at the polls from the year Trump eventually won.
+ZaneA03 <- results_us_election_2016
+```
+
+### Explore the dataset
+
+```{r}
+# look at the data's type
+class(ZaneA03)
+
+# look at the data's structure
+str(ZaneA03)
+
+# look at a summary of the data
+summary(ZaneA03)
+```
+
+It is worth noting that the dataset is significantly less detailed than described in https://cran.r-project.org/web/packages/dslabs/dslabs.pdf.  While there are only 5 columns in the dataset, the description indicated many more columns would be provided:
+
++ state. State in which poll was taken. ‘U.S‘ is for national polls.
++ startdate. Poll’s start date.
++ enddate. Poll’s end date.
++ pollster. Pollster conducting the poll.
++ grade. Grade assigned by fivethirtyeight to pollster.
++ samplesize. Sample size.
++ population. Type of population being polled.
++ rawpoll_clinton. Percentage for Hillary Clinton.
++ rawpoll_trump. Percentage for Donald Trump
++ rawpoll_johnson. Percentage for Gary Johnson
++ rawpoll_mcmullin. Percentage for Evan McMullin.
++ adjpoll_clinton. Fivethirtyeight adjusted percentage for Hillary Clinton.
++ ajdpoll_trump. Fivethirtyeight adjusted percentage for Donald Trump
++ adjpoll_johnson. Fivethirtyeight adjusted percentage for Gary Johnson
++ adjpoll_mcmullin. Fivethirtyeight adjusted percentage for Evan McMullin
+
+### Do any processing/cleaning you want to do
+
+From the exploration above it does not appear there are any NA values in the data.  Let's check to be sure.
+
+```{r}
+# Any NA values in the state column?
+ZaneA03.state.NAs <- ZaneA03[ZaneA03$state=="NA",]
+str(ZaneA03.state.NAs)
+
+# Any NA values in the electoral_votes column?
+ZaneA03.electorals.NAs <- ZaneA03[ZaneA03$electoral_votes=="NA",]
+str(ZaneA03.electorals.NAs)
+
+# Any NA values in the clinton column?
+ZaneA03.clinton.NAs <- ZaneA03[ZaneA03$clinton=="NA",]
+str(ZaneA03.clinton.NAs)
+
+# Any NA values in the trump column?
+ZaneA03.trump.NAs <- ZaneA03[ZaneA03$trump=="NA",]
+str(ZaneA03.trump.NAs)
+
+# Any NA values in the others column?
+ZaneA03.others.NAs <- ZaneA03[ZaneA03$others=="NA",]
+str(ZaneA03.others.NAs)
+
+```
+
+There are no objects in any of the five (5) datasets housing NA values.  Therefore, no cleaning is warranted.
+
+But are there any outliers?
+
+### Make a few exploratory figures. 
+
+```{r}
+# Let's use boxplots to see if there are any outliers in the four (4) columns containing numerical data
+boxplot(ZaneA03$electoral_votes
+        , main="Boxplot of Electorcal Votes"
+        , xlab=""
+        , horizontal=TRUE
+        )
+boxplot(ZaneA03$clinton
+        , main="Boxplot of Clinton poll readings"
+        , xlab=""
+        , horizontal=TRUE
+        )
+boxplot(ZaneA03$trump
+        , main="Boxplot of Trump poll readings"
+        , xlab=""
+        , horizontal=TRUE
+        )
+boxplot(ZaneA03$others
+        , main="Boxplot of pool readings for other candidates"
+        , xlab=""
+        , horizontal=TRUE
+        )
+```
+
+### Optionally, also some tables.
+
+```{r}
+# Let's display all the rows containing an outlier revealed by the boxplots above.
+
+# We'll sorting the rows by the values in each column into new datasets.
+# The sorting will be largest values first.
+# Then we will display the top and/or the bottom of the dataset corresponding to the upper and lower outliers, respectively.
+ZaneA03.electorals.sorted <- ZaneA03[order(-ZaneA03$electoral_votes),]
+head(ZaneA03.electorals.sorted
+     , n=3
+     )
+ZaneA03.clinton.sorted <- ZaneA03[order(-ZaneA03$clinton),]
+head(ZaneA03.clinton.sorted
+     , n=1
+     )
+ZaneA03.trump.sorted <- ZaneA03[order(-ZaneA03$trump),]
+tail(ZaneA03.trump.sorted
+     , n=1
+     )
+ZaneA03.others.sorted <- ZaneA03[order(-ZaneA03$others),]
+head(ZaneA03.others.sorted
+     , n=5
+     )
+```
+
+### Run some simple statistical model(s). Your choice.
+
+How successful were the polls in predicting which candidate ultimately carried the state in the election?  Well, we'll need another dataset ... the results from the voting.
+
+```{r}
+# Load actual votes from 2016 
+ZaneA03.votedata <- read_xlsx("1976-2020-president.xlsx"
+                              , sheet="2016Flat"
+                              , col_names = TRUE
+                              )
+# look at the data's type
+class(ZaneA03.votedata)
+
+# look at the data's structure
+str(ZaneA03.votedata)
+
+# look at a summary of the data
+summary(ZaneA03.votedata)
+
+```
+
+```{r}
+# Are we fortunate enough that the dataset of polls and the dataset of votes are in the same order by state?   One way to check is through visual inspection.
+
+ZaneA03.state.sorted <- ZaneA03[order(ZaneA03$state),]
+ZaneA03.sortcheck <- rbind(ZaneA03.state.sorted$state
+                           , ZaneA03.votedata$State
+                            )
+head(ZaneA03.sortcheck
+     , n=51
+     )
+
+```
+
+The visual inspection reveals the data is aligned by state.
+
+```{r}
+# The visual inspection reveals the data is aligned by state. 
+# So, polls and votes, by the power invested in me by R,
+# I pronounce your merged!
+
+# Build the list of datasets to merge
+
+# ZaneA03.datasetlist <- c("ZaneA03.state.sorted"
+#                         , "ZaneA03.votedata"
+#                         )
+# class(ZaneA03.datasetlist)
+```
+
+```{r}
+# Go forth and merge!
+
+# Rest of this section commented out so you can see everything above in the render
+# ZaneA03.PollsAndVotes <- rbind(ZaneA03.state.sorted
+#                               , ZaneA03.votedata)
+```
+
+```{r}
+# 
+#ZaneA03.PollsAndVotes <- ZaneA03.state.sorted + ZaneA03.votedata
+
+```
