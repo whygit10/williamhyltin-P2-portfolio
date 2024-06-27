@@ -1,0 +1,213 @@
+---
+title: "Data Exercise"
+author: 'William Hyltin' 
+---
+
+This exercise will load, process, and explore a text dataset that consists of employee reviews of their current and former employers on LinkedIn. The dataset can be found from Kaggle [here.]('https://www.kaggle.com/datasets/muhammedabdulazeem/employer-review-about-their-organization/')
+
+Starting with loading our packages, `tidyverse` for general cleaning, `jsonlite` to bring in our Json file, and `here` to make directory referencing easier.
+
+```{r setup}
+pacman::p_load(tidyverse, jsonlite, here, stringr, superml)
+```
+
+Now we will load our data. Json files are not generally square or in a data frame format, but the fromJSON function makes this tremendously easy.
+
+```{r}
+emp_rev <- fromJSON(here('data-exercise', 'employer-reviews.json'))
+head(emp_rev)
+str(emp_rev)
+summary(emp_rev)
+```
+
+Looking at the columns, we will want to do some cleanup on some of the more categorical ones. Starting with the URL, this may contain information about the employer, which we can extract. First i want to confirm that all the urls start the same way.
+```{r}
+substr(emp_rev$URL, 1, 26) %>% unique() #substring extracts first 26 characters,
+#unique tells us all of the unique values in the substring'd column
+length(unique(emp_rev$URL)) #tells us the number of potential company names
+```
+
+Next, I will use some substrings and regex to extract the company name after the above url portion. 
+```{r}
+d1 <- emp_rev %>% mutate(
+  CompNm = (substr(URL, 27, nchar(URL)) %>% str_extract('.*(?=/)') %>% str_replace_all('-',' '))
+)
+#substring removes the first part of the url, since its always the same at 27 characters
+#str_extract looks for and extracts the first set of characters before the "/"
+#str_replace_all removes all of the dashes and replaces them with spaces
+d1$CompNm %>% unique()
+```
+This is cheating a little bit, because I counted the number of characters in the first part of the URL manually, meaning this is not the most robust way to identify the company name, but observing our values it does not look like it caused any problems.  
+
+Next let's look at the Rating. When the file was read in it looks like it was read as a string, but it would be more useful to us as a number. We'll start with a quick summary and completeness check.
+```{r}
+d1$Rating %>% summary() #summary of variable, understand scope
+sum(d1$Rating=='') + sum(is.na(d1$Rating)) #counts empty and missing values
+d1$Rating %>% unique()
+```
+
+So the variable is a string, but does not contain any missing or null values. All of the values fall under the five-point scale, so it should be safe to convert to a number.
+```{r}
+d2 <- d1 %>% mutate(
+  Rating = as.numeric(Rating)
+) # converts the Rating variable to numeric and saves it to the same variable.
+```
+
+One last variable to look at, `ReviewDetails`. This looks to have three parts to it. The status of the employee, the location, and the date the review was done. I'm most interested in the status for this exercise, but let's see if we can get all three
+```{r}
+#str_split() breaks up the column by the dashes
+#simplify = TRUE turns it into a matrix
+# dim() gives us the number of rows and columns of the matrix, expecting 3 cols
+str_split(emp_rev$ReviewDetails, '-', simplify = TRUE) %>% dim()
+```
+
+The intention was to split the variable by dashes to create three columns, however it looks like there are some values that contain a dash themselves. This causes two additional columns to appear, so we will have to make some adjustments.
+
+```{r}
+#check for number of columns
+str_split(emp_rev$ReviewDetails, ' -  ', simplify = TRUE) %>% dim() 
+#check for number of unique employee statuses
+str_split(emp_rev$ReviewDetails, ' -  ', simplify = TRUE)[,1] %>% unique() %>% head(10)
+#check for number of empty values
+ifelse(str_split(emp_rev$ReviewDetails, ' -  ', simplify = TRUE)[,3] =='',1,0) %>% sum()
+```
+
+Fortunately, the solution is easier than it first appeared. Originally I was going to approach the split by splitting from the left and the right for Employee Status and Review Date, then removing everything thats in the left and right for location. However, the dashes that split the different details would have two additional spaces after each, so if we include that in the split function we can get the result we are looking for.
+
+The Employee Status section fo the Details field looks to have more than just the status for some observations. A quick check might be worth it to see if Employee Title would be worth pursuing.
+```{r}
+# splits the columns then checks the first column for the employee status values,
+#then counts those that don't fall into the status value only
+emp_rev %>%
+  mutate(
+    Stat = str_split(ReviewDetails, ' -  ', simplify = TRUE)[,1],
+    Stat = ifelse(Stat %in% c('(Current Employee) ', '(Former Employee) '), 0, 1)
+      ) %>% select(Stat) %>% sum()
+```
+
+With only 523 observations that fall outside of the Current or Former employee status, it's relatively safe to ignore that part of the `ReviewDetails` field.
+```{r}
+#saves the split column into three new variables.
+#Review Date is tranformed into date format
+#Employee status uses str_extract to get the status vales only
+#Location uses trimws() to remove extrenuous blanks
+d3 <- d2 %>% mutate(
+  ReviewDate = (str_split(ReviewDetails, ' -  ', simplify = TRUE)[,3] %>% 
+                  parse_date_time('0m d, y')),
+  EmployeeStatus = (str_split(ReviewDetails, ' -  ', simplify = TRUE)[,1] %>% 
+                      str_extract('(Current Employee)|(Former Employee)')),
+  Location = (str_split(ReviewDetails, ' -  ', simplify = TRUE)[,2] %>% 
+                trimws())
+  )
+# checks for how many values actually have a location. 
+#Primarily to check if the column is worth using
+d3$Location %>% unique() %>% length()
+#Checks to make sure only two values are in the status
+d3$EmployeeStatus %>% unique() %>% length()
+```
+
+```{r}
+#Null and empty checks for new columns. 
+#DatNull does not check for empties because of date format limitation
+d3 %>% summarize(
+  StatNull = sum(EmployeeStatus == '') + sum(is.na(EmployeeStatus)),
+  DatNull = sum(is.na(ReviewDate)),
+  LocNull = sum(Location=='') + sum(is.na(Location))
+)
+```
+Location is a pretty empty field, so it can largely be ignored, otherwise our other two variables look great. From here we can move on to the Review text itself.
+
+```{r}
+#lower cases the full review text
+d3 <- d3 %>% mutate(
+  CompleteReview = tolower(CompleteReview)
+)
+```
+
+Before we do anything we do anything with the reviews, the dataset is huge, and since the next step involves creating a bag of words it would probably be a good idea to filter the dataset. We will pick two companies to filter to as our companies of interest. First let's look at the number of reviews by company.
+```{r}
+#checks the count of reviews by company name
+d3 %>% group_by(CompNm) %>% 
+  summarize(
+    cnt = n()
+  ) %>% arrange(-cnt)
+```
+
+Looking at the size, HP and Dell Technologies look pretty reasonable, so we can filter to those two and compare.
+
+```{r}
+#filters to reviews for HP and Dell Technologies, saves to new df
+d4 <- d3 %>% filter(CompNm %in% c('Dell Technologies', 'HP'))
+```
+
+The next step will create a 'bag of words' commonly used for machine learning, but we're going to use it this time for to get summary information about scores based on the appearance of words.
+```{r}
+#initializes the class for CountVectorizer. 
+#Only looking at top 100 most frequently used words
+cfv <- CountVectorizer$new(max_features = 100)
+#Transforms the occurence of each word across all reviews into a vector
+cf_mat <- cfv$fit_transform(d4$CompleteReview)
+#transposed for readability
+head(cf_mat) %>% t()
+```
+
+Now we combine the bag of words matrix to the dataframe to make summarizing a bit easier
+```{r}
+#combines bag of words with orginal data frame
+d5 <- cbind(d4, cf_mat)
+```
+
+We can take a look at the average score for each word for both companies. Note that the average score is weighted by the number of appearances of a word, that is to say that if a word appears multiple times in a review the score will have a greater weight.
+```{r}
+#Multiples the rating by the appearance of each word, then sums that up for each word
+#Then it divides by the total number of appearances of that word
+((d5$Rating * d5[,10:109]) %>% colSums())/(colSums(d5[,10:109]))
+```
+
+Now lets split up the data by company and see if there are any differences.
+```{r}
+#Standard filters saved as new data frames
+Dell <- d5 %>% filter(CompNm == 'Dell Technologies')
+HP <- d5 %>% filter(CompNm == 'HP')
+```
+
+We can use the same logic as before to get the average score by word, but for each of our new dataframes for each company.
+```{r}
+#Finds the average score by word for Dell. Saves as dataframe
+Dell_scores <- ((Dell$Rating * Dell[,10:109]) %>%
+                  colSums())/ (colSums(Dell[,10:109])) %>% 
+  as.data.frame()
+
+#Finds the average score by word for HP. Saves as dataframe
+HP_scores <- ((HP$Rating * HP[,10:109]) %>% 
+     colSums())/(colSums(HP[,10:109])) %>% 
+  as.data.frame()
+
+Dell_scores %>% head()
+HP_scores %>% head()
+```
+
+Now we use these new data frames to check the difference in score for each word. This could be a potential way of identifying certain areas that employees of one company like or dislike more than employees of the other company.
+```{r}
+#determines the difference in score each word
+word_scores <- Dell_scores - HP_scores
+#updates the name of the score difference so it can be referenced
+colnames(word_scores) <- c('score_diff')
+#sorts by the word score
+word_scores <- word_scores %>% arrange(-score_diff)
+#creates a new variable called word, easier to reference than row names
+word_scores$word <- rownames(word_scores)
+
+head(word_scores)
+```
+
+Ultimately we find the scores to not be so different, but we can still see words that tend to "lead" to higher scores than others. Interestingly, a review that includes either of the words Dell or HP would tend to be higher for Dell than HP, 
+```{r}
+#plots the difference in score by word.
+word_scores %>% head(sum(word_scores$score_diff>0)) %>% ggplot() +
+  geom_col(aes(y=fct_reorder(word, score_diff),x=score_diff)) +
+  labs(y='Word', x='Score Difference', title = 'Dell-HP Score Difference by Word') +
+  theme(axis.text.y = element_text(size=6, angle = 25))
+```
+
+The methodology used here was not terribly robust, so certainly more research could be done. For example using n-grams might get an idea if certain short phrases are more telling, or grouping known "problem" words for one company or another to see if they are mentioned in each others surveys. Other options would be filtering by a score range and seeing what words appear for more positive or negative results.
