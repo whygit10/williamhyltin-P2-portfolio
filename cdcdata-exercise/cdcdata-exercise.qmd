@@ -1,14 +1,21 @@
 ---
 title: "CDC Data Exercise"
 author: "William Hyltin"
+editor: 
+  markdown: 
+    wrap: sentence
 ---
-  
-The CDC Dataset I have chosen for this exercise is the Tobacco Usage Behavioral Risk Factor dataset. The data comes from a survey administered by the CDC as part of the State Tobacco Activities Tracking and Evaluation (STATE) system. The dataset contains information about the year the survey was administered, respondent location (State or territory), demographics (namely Race, Age, Education, and Gender), and it asks questions about a person's tobacco usage status (current, former, never used), their cessation status (whether they have quit or attempted to quit in the last year), and the frequency that they use tobacco for those that do (daily, some days). The usage questions are asked for three different types of Tobacco products, Cigarettes, Smokeless Tobacco, and E-cigarettes.
+
+## Exploring the original data set
+
+The CDC data set I have chosen for this exercise is the Tobacco Usage Behavioral Risk Factor data set.
+The data comes from a survey administered by the CDC as part of the State Tobacco Activities Tracking and Evaluation (STATE) system.
+The data set contains information about the year the survey was administered, respondent location (State or territory), demographics (namely Race, Age, Education, and Gender), and it asks questions about a person's tobacco usage status (current, former, never used), their cessation status (whether they have quit or attempted to quit in the last year), and the frequency that they use tobacco for those that do (daily, some days).
+The usage questions are asked for three different types of Tobacco products, Cigarettes, Smokeless Tobacco, and E-cigarettes.
 
 ```{r setup}
-pacman::p_load(here, tidyverse, skimr, plotly)
+pacman::p_load(here, tidyverse, skimr, plotly, synthpop, patchwork)
 ```
-
 
 ```{r data-load}
 rawdata <- read_csv('cdc-data-raw.csv')
@@ -20,44 +27,53 @@ summary(rawdata) # summary statistics
 skim(rawdata) # primarily to get completion rates
 ```
 
-
 ```{r}
 head(rawdata, 20) # getting first 20 rows
 ```
 
-The dataset is not the most analyst friendly format. Generally the ideal format would be variables in the columns, observations in the rows. This dataset has variables across several rows, and it is mostly aggregated. The questions are broken up by the different response options, which are spread across rows even though the values are proportions and therefore the samples sizes listed for the different response options for a single question come from the same audience. Aggregations grouped by each of the demographics, locations, and timeframes are also in the rows, similar to a pivot table, so getting things like summary statistics will require filtering these aggregated values. 
-Some survey question variables have missing values, but with the data in this format it's difficult to make much of them, but we will come back to that. There are a few variables that only serve to give information about the dataset itself, like Data_Value_Unit, which only contains one value, "Percentage", to inform that the Value column is a percentage. Variable like this (Zero or Near Zero Variance) can be removed, since they give no information about the individual observations.
+The data set is not the most analyst friendly format.
+Generally the ideal format would be variables in the columns, observations in the rows.
+This data set has variables across several rows, and it is mostly aggregated.
+The questions are broken up by the different response options, which are spread across rows even though the values are proportions and therefore the samples sizes listed for the different response options for a single question come from the same audience.
+Aggregations grouped by each of the demographics, locations, and timeframes are also in the rows, similar to a pivot table, so getting things like summary statistics will require filtering these aggregated values.
+Some survey question variables have missing values, but with the data in this format it's difficult to make much of them, but we will come back to that.
+There are a few variables that only serve to give information about the data set itself, like Data_Value_Unit, which only contains one value, "Percentage", to inform that the Value column is a percentage.
+Variable like this (Zero or Near Zero Variance) can be removed, since they give no information about the individual observations.
 
-Variables to be removed:
-Zero Variance variables: Data_Value_Unit, Data_Value_Type, DataSource, TopicType, TopicTypeId
-NZV: Data_Value_Footnote_Symbol, Data_Value_Footnote
+Variables to be removed: Zero Variance variables: Data_Value_Unit, Data_Value_Type, DataSource, TopicType, TopicTypeId NZV: Data_Value_Footnote_Symbol, Data_Value_Footnote
 
 ```{r}
 rawdata %>% filter(is.na(Data_Value)) #looking at nulls to determine why they are there
 ```
 
-Missing values from the Data_Value column occur when the sample size is not large enough to report results. Some of these missing values may have the opportunity for imputation, and filtering these could cause some confusion in the actual structure of the data (complete and consistent combinations of categorical values) so we won't filter anything out just yet. note this is evidenced by the Footnote column with the following message:	"Data in these cells have been suppressed because of a small sample size."
+Missing values from the Data_Value column occur when the sample size is not large enough to report results.
+Some of these missing values may have the opportunity for imputation, and filtering these could cause some confusion in the actual structure of the data (complete and consistent combinations of categorical values) so we won't filter anything out just yet.
+note this is evidenced by the Footnote column with the following message: "Data in these cells have been suppressed because of a small sample size."
 
 ```{r}
 unique(paste(rawdata$LocationDesc,rawdata$LocationAbbr)) # paste concatenates columns, unique to get distinct values.
 ```
-To understand the scope of the dataset and check for things like inconsistencies, mismatched abbreviations, etc we look at all the unique values for LocationDesc and LocationAbbr. For simplicity sake I will remove the Abbreviated column in the future.
+
+To understand the scope of the data set and check for things like inconsistencies, mismatched abbreviations, etc we look at all the unique values for LocationDesc and LocationAbbr.
+For simplicity sake I will remove the Abbreviated column in the future.
 
 ```{r}
 unique(rawdata$YEAR) # seeing unique values of year
 ```
-	
+
 ```{r}
 rawdata %>% filter(nchar(YEAR) > 4) # confirming what the two-year values are
 ```
-	
-Again, understanding the scope of the data. Two things I'm noticing, first being that the year column is a character variable, and not a number. Second being that there are some two-year aggregations that are not necessary since we have every year between 2011 and 2019, these can likely be filtered out.
-	
+
+Again, understanding the scope of the data.
+Two things I'm noticing, first being that the year column is a character variable, and not a number.
+Second being that there are some two-year aggregations that are not necessary since we have every year between 2011 and 2019, these can likely be filtered out.
+
 ```{r}
 # filtering down to one Locationa and a smaller year set, again to diagnose the two-year observations
 rawdata %>% filter(LocationAbbr == 'IL', YEAR %in% c('2014-2015', '2014', '2015')) %>% arrange(DisplayOrder)
 ```
-	
+
 ```{r}
 rawdata %>% filter(LocationAbbr == 'IL', YEAR %in% c('2014-2015', '2014', '2015')) %>% 
   group_by(YEAR, Race, Gender, MeasureDesc) %>% # groups picked to confirm aggregation hierarchy
@@ -66,15 +82,17 @@ rawdata %>% filter(LocationAbbr == 'IL', YEAR %in% c('2014-2015', '2014', '2015'
   )
 ```
 
-This was primarily to confirm that the two-year rows are in fact aggregations of the data we have in the single-year rows, which we can see that they are. Filtering to a specific location and timeframe also gives us an idea of data structure. 
+This was primarily to confirm that the two-year rows are in fact aggregations of the data we have in the single-year rows, which we can see that they are.
+Filtering to a specific location and timeframe also gives us an idea of data structure.
 
-Note: Values like Current Use and Current Smoking are intentionally different. 'Use' Corresponds to smokeless tobacco use, 'Smoking' refers to cigarrette/ non-electronic usage.
+Note: Values like Current Use and Current Smoking are intentionally different.
+'Use' Corresponds to smokeless tobacco use, 'Smoking' refers to cigarrette/ non-electronic usage.
 
-This is enough exploration to give me an idea of what I would want my final dataset to look like after cleaning and processing.  
-Goal Dataset Mapping:  
-|Year|Location|Age|Race|Gender|Education|Value for Measure Desc combined with Values for Response, Surveyed then Freq
+This is enough exploration to give me an idea of what I would want my final data set to look like after cleaning and processing.\
+Goal Data Set Mapping:\
+\|Year\|Location\|Age\|Race\|Gender\|Education\|Value for Measure Desc combined with Values for Response, Surveyed then Freq
 
-This would ultimately be a wider dataset than we have now, and we will get there in steps.
+This would ultimately be a wider data set than we have now, and we will get there in steps.
 
 ```{r}
 d1 <- rawdata %>% filter(nchar(YEAR) == 4) %>% 
@@ -87,8 +105,12 @@ d1 <- rawdata %>% filter(nchar(YEAR) == 4) %>%
 head(d1)
 ```
 
-Combining Topic, Measures, and response effectively gives us a unique identifier for each answer choice for each question. Since the dataset is already aggregated, we can use these combined question identifiers as variables and line them up with our categorical variables. This gets us one step closer to the rows as observations, or aggregations of observations in this case.
-Note that we essentially have two numeric values, the sample size and the observed proportion of interest. The sample size is not the same for each question or demographic, so we cant really solve for one without solving for both. To make this easier, I will split these up into two datasets then bring them back together at the end.
+Combining Topic, Measures, and response effectively gives us a unique identifier for each answer choice for each question.
+Since the data set is already aggregated, we can use these combined question identifiers as variables and line them up with our categorical variables.
+This gets us one step closer to the rows as observations, or aggregations of observations in this case.
+Note that we essentially have two numeric values, the sample size and the observed proportion of interest.
+The sample size is not the same for each question or demographic, so we cant really solve for one without solving for both.
+To make this easier, I will split these up into two data sets then bring them back together at the end.
 
 ```{r}
 d2 <- d1 %>% select(-Sample_Size) %>% # removing sample size so the pivot over Data_Value works correctly
@@ -107,11 +129,13 @@ d3 <- d1 %>% select(-Data_Value) %>% # removing Date_Value so the pivot over Sam
 
 head(d3)
 ```
+
 ```{r}
 sum(d2[,1:6] != d3[,1:6]) # counts number of mismatches between categorical columns in the split dataset 
 ```
 
-The pivot allows us to get each question-response identifier into a variable and line them up with categorical variables that are the same. Our d2 dataframe is now our response frequency dataset, and d3 is now our sample size dataset.
+The pivot allows us to get each question-response identifier into a variable and line them up with categorical variables that are the same.
+Our d2 data frame is now our response frequency data set, and d3 is now our sample size data set.
 The last chunk is just checking that my categorical variables maintained the same structure after pivoting, which they should.
 
 ```{r}
@@ -124,7 +148,8 @@ d3 <- d3 %>%  select(c(names(d3[,1:6]),sort(names(d3[,7:25])))) %>%
 names(d3)
 ```
 
-Since we lead off the question-response identifiers with the topic and Measure, we can get sort the variables alphabetically to get like questions next to each other. We do this for each dataframe.
+Since we lead off the question-response identifiers with the topic and Measure, we can get sort the variables alphabetically to get like questions next to each other.
+We do this for each data frame.
 
 ```{r}
 # Manually renaming columns for conciseness
@@ -162,7 +187,11 @@ names(d2) <- c(names(d2[,1:6]),paste0(names(d2[,7:25]), 'RespFreq'))
 names(d3) <- c(names(d3[,1:6]),paste0(names(d3[,7:25]), 'SrvCnt'))
 ```
 
-There are shorter ways to make the column names usable, but I want column names that are also more concise. Here I have renamed each question-response identifier individually, to make them much easier to undrstand while I work with them. the redict part also creates a pseudo-data dictionary so I can remember what each renamed column corresponds to, if i forget. I rename the columns for d2 the lazy way, by copying the naming conventions from d3 since the structre is the same. Finally I add 'RespFreq' to the column names of my response frequency dataset, and 'SrvCnt' to the Survey Count sample size for my Sample Size dataset.
+There are shorter ways to make the column names usable, but I want column names that are also more concise.
+Here I have renamed each question-response identifier individually, to make them much easier to undrstand while I work with them.
+the redict part also creates a pseudo-data dictionary so I can remember what each renamed column corresponds to, if i forget.
+I rename the columns for d2 the lazy way, by copying the naming conventions from d3 since the structre is the same.
+Finally I add 'RespFreq' to the column names of my response frequency dataset, and 'SrvCnt' to the Survey Count sample size for my Sample Size dataset.
 
 ```{r}
 sum(d2[,1:6] != d3[,1:6]) # one last check to make sure nothing got shuffled incorrectly
@@ -170,24 +199,35 @@ sum(d2[,1:6] != d3[,1:6]) # one last check to make sure nothing got shuffled inc
 d4 <- merge(d2,d3) # merging the two datasets into a master
 ```
 
-Again, one last check to make sure everything is in the correct order, then merging the datasets into one master dataset.
+Again, one last check to make sure everything is in the correct order, then merging the data sets into one master data set.
 
 ```{r}
 # filter to narrow scope and see if transformations worked correctly and see what can be removed.
 d4 %>% filter(Year == 2016, LocationDesc == 'Wyoming')
 ```
 
-Filtering down to one Year and Location, so I can see how some of the aggregated values roll up and how they combine with other demographic variables. This gives me some insight into which questions were missing at what grains, and also allows me to check my merge to make sure it looks right.
-We finally have the data in a shape and layout that makes sense, and we see that its still kind of a mess. The intention was to maintain the separated demographic columns, and get each survey question into a column or columns. We accomplished that, however we can see that the demographics don't stack in most cases. For example, I can see aggregated sample sizes for each Gender and the frequency for each question's response, but I cannot see the age, education, or race makeup for each gender, or any combination of the demographic variables really. This was likely a deliberate choice for sample size constraints, nonetheless it complicates the next steps of this exercise.
-For a more in depth exercise, I would probably consider imputing the missing sample sizes or rates to get stratification by gender, age and race combined. However for the sake of this exercise, I will break each of the demographics into separate datasets since they have different questions considered. Once done, I will focus in on the Gender dataset, since it looks like the gender demographic is the most complete across all questions.  
+Filtering down to one Year and Location, so I can see how some of the aggregated values roll up and how they combine with other demographic variables.
+This gives me some insight into which questions were missing at what grains, and also allows me to check my merge to make sure it looks right.
+We finally have the data in a shape and layout that makes sense, and we see that its still kind of a mess.
+The intention was to maintain the separated demographic columns, and get each survey question into a column or columns.
+We accomplished that, however we can see that the demographics don't stack in most cases.
+For example, I can see aggregated sample sizes for each Gender and the frequency for each question's response, but I cannot see the age, education, or race makeup for each gender, or any combination of the demographic variables really.
+This was likely a deliberate choice for sample size constraints, nonetheless it complicates the next steps of this exercise.
+For a more in depth exercise, I would probably consider imputing the missing sample sizes or rates to get stratification by gender, age and race combined.
+However for the sake of this exercise, I will break each of the demographics into separate data sets since they have different questions considered.
+Once done, I will focus in on the Gender data set, since it looks like the gender demographic is the most complete across all questions.
 
-The aggregated values by demographic aren't necessary in the final version of any of these datasets, but we may need them to get the response volumes of some of the demographic values if there few responses. So, we can filter against all of the other demographic variables to only included their roll-up or overall value. First we will check for what those values are for each variable.
+The aggregated values by demographic aren't necessary in the final version of any of these data sets, but we may need them to get the response volumes of some of the demographic values if there few responses.
+So, we can filter against all of the other demographic variables to only included their roll-up or overall value.
+First we will check for what those values are for each variable.
+
 ```{r}
 unique(d4$Age) #'All Ages', also note some of the age bins are overlapping.
 unique(d4$Gender) #'Overall'
 unique(d4$Race) #'All Races'
 unique(d4$Education) #'All Grades'
 ```
+
 ```{r}
 # Age dataset, looking at rollup for all other variables except age, 
 # then selecting relevant columns and filtering any last missing values
@@ -262,8 +302,14 @@ EdSrv <- d4 %>% filter(1==1
   filter(!is.na(CigCurrSmkerRespFreq))
 ```
 
-Now to focus in on the gender dataset. I did not select specific columns earlier because the treatment was a bit different than the other datasets. This dataset in particular has a lot more opportunity for imputing and other transformations, but for the simplicity of this exercise we will select only a few interesting and complete columns.
-Also one last note, the Gender variables has three values, Male, Female, and Overall. Since the Response frequency is the true variable of interest, I'm going to leave the "Overall" values in. Under other circumstances I would remove these and calculate overall values only when they apply, that way there aren't "repeated" observations in the dataset. However, the response frequency variables are pre-processed and rounded, so it would only unnecessarily complicate things to try and calculate response counts to get a proper aggregation.
+Now to focus in on the gender data set.
+I did not select specific columns earlier because the treatment was a bit different than the other data sets.
+This data set in particular has a lot more opportunity for imputing and other transformations, but for the simplicity of this exercise we will select only a few interesting and complete columns.
+Also one last note, the Gender variables has three values, Male, Female, and Overall.
+Since the Response frequency is the true variable of interest, I'm going to leave the "Overall" values in.
+Under other circumstances I would remove these and calculate overall values only when they apply, that way there aren't "repeated" observations in the data set.
+However, the response frequency variables are pre-processed and rounded, so it would only unnecessarily complicate things to try and calculate response counts to get a proper aggregation.
+
 ```{r}
 #Selecting relevant columns for the remainder of the exercise
 GndSrv <- GndSrv %>% 
@@ -278,7 +324,8 @@ GndSrv <- GndSrv %>%
     )
 ```
 
-I have decided to focus in on the questions for Cigarette usage, namely status and if they have attempted to quit in the last year. I also kept Year and Location since those variables were the least problematic, and of course Gender since this is the Gender-specific dataset.
+I have decided to focus in on the questions for Cigarette usage, namely status and if they have attempted to quit in the last year.
+I also kept Year and Location since those variables were the least problematic, and of course Gender since this is the Gender-specific dataset.
 
 ```{r}
 GndSrv %>% group_by(Gender) %>% #grouped by general to see potential differences in mean.
@@ -290,23 +337,34 @@ GndSrv %>% group_by(Gender) %>% #grouped by general to see potential differences
   )
 ```
 
-Let's start by getting some quick descriptive statistics. Notice that this table will get the average Rate for each of the questions across all states and timeframes. The number of combinations we have between categorical variables, especially since the Location variable has so many categories, complicates our ability to get a closer look. Faceting and framing will help with this, as we will see in a moment.
+Let's start by getting some quick descriptive statistics.
+Notice that this table will get the average Rate for each of the questions across all states and timeframes.
+The number of combinations we have between categorical variables, especially since the Location variable has so many categories, complicates our ability to get a closer look.
+Faceting and framing will help with this, as we will see in a moment.
 
 ```{r}
-GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and latest year
+box1o <- GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and latest year
   ggplot(aes(x=CigStatCurrRespFreq)) + # Get current smoker rate
   geom_boxplot() +
-  labs(x = 'Percent of Current Smokers') +
+  labs(x = 'Percent of Current Smokers', y = NULL, title = "Original Data") +
+  theme(plot.title = element_text(hjust = .5)) +
   facet_grid(cols = vars(Year), rows = vars(Gender)) #want year and gender stratification
+box1o
 
-GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and latest year
+hist1o <- GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and latest year
   ggplot(aes(x=CigStatCurrRespFreq)) + # Get current smoker rate
-  geom_histogram() +
-  labs(x = 'Percent of Current Smokers') +
+  geom_histogram(bins = 30) +
+  labs(x = 'Percent of Current Smokers', y = NULL, title = "Original Data") +
+  theme(plot.title = element_text(hjust = .5)) +
   facet_grid(cols = vars(Year), rows = vars(Gender)) #want year and gender stratification
+hist1o
 ```
 
-the boxplots should show the distribution of the Percent of Current Smokers across the different locations. I have filter to 2011, the earliest year in the dataset, and 2019, the latest year. Here I wanted to see if there would be a large difference from the beginning of the timeframe to the end, and for the most part we can see that there is. It appears as though we have a lower rate of "Current" Smokers from beginning to end. the distribution is not particularly clean, but it also looks to be shifting left while keeping some outliers on the higher end to make for a bit of a right skew.
+the boxplots should show the distribution of the Percent of Current Smokers across the different locations.
+I have filter to 2011, the earliest year in the data set, and 2019, the latest year.
+Here I wanted to see if there would be a large difference from the beginning of the timeframe to the end, and for the most part we can see that there is.
+It appears as though we have a lower rate of "Current" Smokers from beginning to end.
+the distribution is not particularly clean, but it also looks to be shifting left while keeping some outliers on the higher end to make for a bit of a right skew.
 
 ```{r}
 GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and latest year
@@ -317,13 +375,17 @@ GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and late
 
 GndSrv %>% filter(Year %in% c(max(Year), min(Year))) %>% #gets earliest and latest year
   ggplot(aes(x=QuitAttmptRespFreq)) + # Quit Attempt Rate observed
-  geom_histogram() +
-  labs(x = 'Percent of Quit Attempts\nAmong Current Smokers') +
+  geom_histogram(bins = 30) +
+  labs(x = 'Percent of Quit Attempts\nAmong Current Smokers', y = NULL) +
   facet_grid(cols = vars(Year), rows = vars(Gender)) #want year and gender stratification
 ```
 
-Going into the quit rate, it's a bit of a different story here. There is maybe a little bit of a left shift in the Males and Overall, but it is far less pronounced than it was for the percent of current smokers. This makes sense, since it is the quit rate for current smokers, meaning we would expect it to either stay the same or potentially increase over time. This begs the question if the decrease in current smokers is coming from more people quitting or fewer people starting.
-The distribution is also all over the place, so there is a wider variance. This will be apparent in the next visual.
+Going into the quit rate, it's a bit of a different story here.
+There is maybe a little bit of a left shift in the Males and Overall, but it is far less pronounced than it was for the percent of current smokers.
+This makes sense, since it is the quit rate for current smokers, meaning we would expect it to either stay the same or potentially increase over time.
+This begs the question if the decrease in current smokers is coming from more people quitting or fewer people starting.
+The distribution is also all over the place, so there is a wider variance.
+This will be apparent in the next visual.
 
 ```{r}
 aniplot <- GndSrv %>% filter(Gender != 'Overall') %>% # wanting Male and Female only
@@ -334,7 +396,11 @@ aniplot <- GndSrv %>% filter(Gender != 'Overall') %>% # wanting Male and Female 
 ggplotly(aniplot) %>% animation_opts(1500, 1000) # feeds ggplot into animaton, also slows down the slider when i click play
 ```
 
-This was a pretty telling visual, so a few observations. First, there tend to be a higher rate of men who are current smokers over women. Second, the distribution is slowly but surely shifting left over time, it was not simply a fluke between 2011 and 2019 earlier. Finally, the wide variance in the percent of quit attempts is apparent, with the amount of vertical movement each point had in the visual.Still the distribution did not look to have any large shift up or down over time, which tells me the rate of people quitting is roughly the same, so more like the decrease in current smokers is happening because fewer people ever start smoking.
+This was a pretty telling visual, so a few observations.
+First, there tend to be a higher rate of men who are current smokers over women.
+Second, the distribution is slowly but surely shifting left over time, it was not simply a fluke between 2011 and 2019 earlier.
+Finally, the wide variance in the percent of quit attempts is apparent, with the amount of vertical movement each point had in the visual.
+Still the distribution did not look to have any large shift up or down over time, which tells me the rate of people quitting is roughly the same, so more like the decrease in current smokers is happening because fewer people ever start smoking.
 
 ```{r}
 aniplot2 <- GndSrv %>% filter(Gender == 'Overall') %>% #Filtering to just overall, couldnt get stacked chart to work
@@ -347,7 +413,9 @@ aniplot2 <- GndSrv %>% filter(Gender == 'Overall') %>% #Filtering to just overal
 ggplotly(aniplot2) %>% animation_opts(1500, 1000) # feeds ggplot into animation, also slows down the slider when i click play
 ```
 
-Mostly wanting to see if any outliers are more apparent here. Guam looks to have the highest rate of people who smoke, but they also have wide swings, likely due to a smaller sample size. Worth noting that the ranking of rates by state does not change significantly over time either.
+Mostly wanting to see if any outliers are more apparent here.
+Guam looks to have the highest rate of people who smoke, but they also have wide swings, likely due to a smaller sample size.
+Worth noting that the ranking of rates by state does not change significantly over time either.
 
 ```{r}
 aniplot2 <- GndSrv %>% filter(Gender == 'Overall') %>% #Filtering to just overall, couldnt get stacked chart to work
@@ -360,7 +428,8 @@ aniplot2 <- GndSrv %>% filter(Gender == 'Overall') %>% #Filtering to just overal
 ggplotly(aniplot2) %>% animation_opts(1500, 1000) # feeds ggplot into animation, also slows down the slider when i click play
 ```
 
-The rate of Former smokers does not look like it shares the trend. Again, if we saw an increase in the rates of people quitting we might expect the rate of Former Smokers to increase over time, but we don't really see that much here.
+The rate of Former smokers does not look like it shares the trend.
+Again, if we saw an increase in the rates of people quitting we might expect the rate of Former Smokers to increase over time, but we don't really see that much here.
 
 ```{r}
 aniplot2 <- GndSrv %>% filter(Gender == 'Overall') %>% #Filtering to just overall, couldnt get stacked chart to work
@@ -373,4 +442,133 @@ aniplot2 <- GndSrv %>% filter(Gender == 'Overall') %>% #Filtering to just overal
 ggplotly(aniplot2) %>% animation_opts(1500, 1000) # feeds ggplot into animation, also slows down the slider when i click play
 ```
 
-Here we can see that increase in rate of people who have never smoked, though admittedly it still seems less pronounced than it was for the decrease in Current smokers. Still, it's in line with the hypothesis that people are more likely are more likely to have never started smoking than they were in the past, and that is why we are seeing such a decrease in the rate of Current Smokers. Not to end on a darker note, but this is also likely a result of those who were Current Smokers in the earlier years dying off at a higher rate than non-smokers. This may suggest that younger people are much less likely to start smoking as well.
+Here we can see that increase in rate of people who have never smoked, though admittedly it still seems less pronounced than it was for the decrease in Current smokers.
+Still, it's in line with the hypothesis that people are more likely are more likely to have never started smoking than they were in the past, and that is why we are seeing such a decrease in the rate of Current Smokers.
+Not to end on a darker note, but this is also likely a result of those who were Current Smokers in the earlier years dying off at a higher rate than non-smokers.
+This may suggest that younger people are much less likely to start smoking as well.
+
+## Generating and comparing synthetic data
+
+### This section contributed by *Sean O'Sullivan*
+
+```{r}
+# generating a reproducible set of synthetic data based on the characteristics
+# of the original GndSrv data frame
+set.seed(42)
+synth <- syn(GndSrv, method = c("","","","norm", "norm", "norm", "norm"))
+syn.GndSrv <- as.data.frame(synth[3])
+```
+
+In order to generate some synthetic data that takes on the characteristics of the original data set we utilized the `synthpop` package's `syn()` function and saved the returned data as a new data frame.
+
+```{r}
+# converting a few columns in both the original and synthetic data frames
+# to factor so that the summary function output can be better interpreted
+syn.GndSrv_fac <- as.data.frame(synth[3]) %>%
+  mutate(syn.Year = as.factor(syn.Year),
+         syn.LocationDesc = as.factor(syn.LocationDesc),
+         syn.Gender = as.factor(syn.Gender))
+GndSrv_fac <- GndSrv %>%
+  mutate(Year = as.factor(Year),
+         LocationDesc = as.factor(LocationDesc),
+         Gender = as.factor(Gender))
+
+# outputting variable summaries for both data frames
+skim(GndSrv_fac)
+skim(syn.GndSrv_fac)
+
+# comparing overall distributions
+# subset just the numeric features
+GndSrv_num <- GndSrv %>%
+  select(where(is.numeric)) %>% 
+  select(-Year)
+
+# function for plotting multiple columns iteratively through the data frame
+histfunco <- function(colname) {
+colname <- sym(colname)
+plot <- GndSrv_num %>% 
+  ggplot(aes(x = !!colname)) +
+  geom_histogram(aes(y = after_stat(density)), col ="white", fill = "aquamarine2", bins = 30) +
+  geom_density(col = "aquamarine3") +
+  ylab(NULL) +
+  theme(axis.text.y=element_blank(),
+  axis.ticks.y=element_blank())
+}
+
+# iterating through the numeric columns of the data frame with the above function and plotting the results
+histso <- lapply(colnames(GndSrv_num), FUN = histfunco)
+
+# subset just the numeric features
+syn.GndSrv_num <- syn.GndSrv %>%
+  select(where(is.numeric)) %>% 
+  select(-syn.Year)
+
+# function for plotting multiple columns iteratively through the data frame
+histfuncs <- function(colname) {
+colname <- sym(colname)
+plot <- syn.GndSrv_num %>% 
+  ggplot(aes(x = !!colname)) +
+  geom_histogram(aes(y = after_stat(density)), col ="white", fill = "coral2", bins = 30) +
+  geom_density(col = "coral") +
+  ylab(NULL) +
+  theme(axis.text.y=element_blank(),
+  axis.ticks.y=element_blank())
+}
+
+# iterating through the numeric columns of the data frame with the above function and plotting the results
+histss <- lapply(colnames(syn.GndSrv_num), FUN = histfuncs)
+
+#plot all plots
+wrap_plots(wrap_plots(histso, nrow = 1), wrap_plots(histss, nrow = 1), nrow = 2)
+```
+
+Comparing the overall distribution of the data in the original data frame and the new synthesized data frame we see that the overall shape of the data is very similar. Both data frames contain the same number of total observations, as well as the same composition of observations for each grouping within each factor (year, state, gender). Similarly we see nearly identical mean, standard deviation, and percentiles across each of the numeric variables. We can also see that the variable distributions when plotted are effectively visually indistinguishable overall.
+
+
+```{r}
+# comparing distribution plots for percent of current smokers by year and gender
+box1s <- syn.GndSrv %>% filter(syn.Year %in% c(max(syn.Year), min(syn.Year))) %>% #gets earliest and latest year
+  ggplot(aes(x=syn.CigStatCurrRespFreq)) + # Get current smoker rate
+  geom_boxplot() +
+  labs(x = 'Percent of Current Smokers', title = "Original Data") +
+  theme(plot.title = element_text(hjust = .5)) +
+  facet_grid(cols = vars(syn.Year), rows = vars(syn.Gender)) #want year and gender stratification
+wrap_plots(box1o, box1s, ncol = 1)
+
+hist1s <- syn.GndSrv %>% filter(syn.Year %in% c(max(syn.Year), min(syn.Year))) %>% #gets earliest and latest year
+  ggplot(aes(x=syn.CigStatCurrRespFreq)) + # Get current smoker rate
+  geom_histogram(bins = 30) +
+  labs(x = 'Percent of Current Smokers', y = NULL, title = "Synthetic Data") +
+  theme(plot.title = element_text(hjust = .5)) +
+  facet_grid(cols = vars(syn.Year), rows = vars(syn.Gender)) #want year and gender stratification
+wrap_plots(hist1o, hist1s, ncol = 1)
+```
+
+However, when we examine the distributions of these features along combinations of `Year` and `Gender` we start to see some deviation from the underlying relationships at such a low level. They aren't entirely dissimilar, but they differ significantly. This is perhaps because the `synthpop` package lacks enough data points for each combination of strata to create anything that isn't simply a 1:1 copy of the original data. 
+
+When attempting to use the `syn.strata()` function provided by the `synthpop` package we are able to better maintain relationships at a lower level by supplying a strata argument with the variable `Year`, but even the sample size for each strata of `Year` is too small for the function's liking -- as can be seen below. 
+
+```{r}
+# generating a reproducible set of synthetic data based on the characteristics
+# of the original GndSrv data frame
+set.seed(42)
+synth2 <- syn.strata(GndSrv, strata = "Year", method = c("","","","norm", "norm", "norm", "norm"))
+syn.GndSrv2 <- as.data.frame(synth2[3])
+
+# comparing distribution plots for percent of current smokers by year and gender
+box2s <- syn.GndSrv2 %>% filter(syn.Year %in% c(max(syn.Year), min(syn.Year))) %>% #gets earliest and latest year
+  ggplot(aes(x=syn.CigStatCurrRespFreq)) + # Get current smoker rate
+  geom_boxplot() +
+  labs(x = 'Percent of Current Smokers', title = "Original Data") +
+  theme(plot.title = element_text(hjust = .5)) +
+  facet_grid(cols = vars(syn.Year), rows = vars(syn.Gender)) #want year and gender stratification
+wrap_plots(box1o, box2s, ncol = 1)
+
+hist2s <- syn.GndSrv2 %>% filter(syn.Year %in% c(max(syn.Year), min(syn.Year))) %>% #gets earliest and latest year
+  ggplot(aes(x=syn.CigStatCurrRespFreq)) + # Get current smoker rate
+  geom_histogram(bins = 30) +
+  labs(x = 'Percent of Current Smokers', y = NULL, title = "Synthetic Data") +
+  theme(plot.title = element_text(hjust = .5)) +
+  facet_grid(cols = vars(syn.Year), rows = vars(syn.Gender)) #want year and gender stratification
+wrap_plots(hist1o, hist2s, ncol = 1)
+```
