@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.555">
+<meta name="generator" content="quarto-1.4.554">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -209,27 +209,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Starting with loading our packages, <code>tidyverse</code> for general cleaning, <code>jsonlite</code> to bring in our Json file, and <code>here</code> to make directory referencing easier.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, jsonlite, here, stringr, superml)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Installing package into '/Users/sean.osullivan/Library/R/arm64/4.3/library'
-(as 'lib' is unspecified)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>also installing the dependencies 'Metrics', 'RcppArmadillo'</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-The downloaded binary packages are in
-    /var/folders/lp/jc634m5j04d0t3bb1wn_d5c00000gq/T//RtmpcbM8UU/downloaded_packages</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-superml installed</code></pre>
-</div>
 </div>
 <p>Now we will load our data. Json files are not generally square or in a data frame format, but the fromJSON function makes this tremendously easy.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>emp_rev <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="fu">here</span>(<span class="st">'data-exercise'</span>, <span class="st">'employer-reviews.json'</span>))</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(emp_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>emp_rev <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="fu">here</span>(<span class="st">'data-exercise'</span>, <span class="st">'employer-reviews.json'</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(emp_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                      ReviewTitle
 1                      Productive
@@ -260,7 +244,7 @@ superml installed</code></pre>
 5                (Former Employee)  -   -  August 9, 2021
 6 (Current Employee)  -  Dahej, Gujarat  -  July 22, 2021</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(emp_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(emp_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>'data.frame':   145209 obs. of  5 variables:
  $ ReviewTitle   : chr  "Productive" "Stressful" "Good Company for Every employee" "Productive" ...
@@ -269,7 +253,7 @@ superml installed</code></pre>
  $ Rating        : chr  "3.0" "3.0" "5.0" "5.0" ...
  $ ReviewDetails : chr  "(Current Employee)  -  Ghansoli  -  August 30, 2021" "(Former Employee)  -   -  August 26, 2021" "(Former Employee)  -   -  August 17, 2021" "(Current Employee)  -   -  August 17, 2021" ...</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(emp_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(emp_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> ReviewTitle        CompleteReview         URL               Rating         
  Length:145209      Length:145209      Length:145209      Length:145209     
@@ -283,25 +267,25 @@ superml installed</code></pre>
 </div>
 <p>Looking at the columns, we will want to do some cleanup on some of the more categorical ones. Starting with the URL, this may contain information about the employer, which we can extract. First i want to confirm that all the urls start the same way.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">substr</span>(emp_rev<span class="sc">$</span>URL, <span class="dv">1</span>, <span class="dv">26</span>) <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="co">#substring extracts first 26 characters,</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">substr</span>(emp_rev<span class="sc">$</span>URL, <span class="dv">1</span>, <span class="dv">26</span>) <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="co">#substring extracts first 26 characters,</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "https://in.indeed.com/cmp/"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#unique tells us all of the unique values in the substring'd column</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(emp_rev<span class="sc">$</span>URL)) <span class="co">#tells us the number of potential company names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#unique tells us all of the unique values in the substring'd column</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(emp_rev<span class="sc">$</span>URL)) <span class="co">#tells us the number of potential company names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 7286</code></pre>
 </div>
 </div>
 <p>Next, I will use some substrings and regex to extract the company name after the above url portion.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> emp_rev <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">CompNm =</span> (<span class="fu">substr</span>(URL, <span class="dv">27</span>, <span class="fu">nchar</span>(URL)) <span class="sc">%&gt;%</span> <span class="fu">str_extract</span>(<span class="st">'.*(?=/)'</span>) <span class="sc">%&gt;%</span> <span class="fu">str_replace_all</span>(<span class="st">'-'</span>,<span class="st">' '</span>))</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#substring removes the first part of the url, since its always the same at 27 characters</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">#str_extract looks for and extracts the first set of characters before the "/"</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">#str_replace_all removes all of the dashes and replaces them with spaces</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>CompNm <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> emp_rev <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">CompNm =</span> (<span class="fu">substr</span>(URL, <span class="dv">27</span>, <span class="fu">nchar</span>(URL)) <span class="sc">%&gt;%</span> <span class="fu">str_extract</span>(<span class="st">'.*(?=/)'</span>) <span class="sc">%&gt;%</span> <span class="fu">str_replace_all</span>(<span class="st">'-'</span>,<span class="st">' '</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#substring removes the first part of the url, since its always the same at 27 characters</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#str_extract looks for and extracts the first set of characters before the "/"</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#str_replace_all removes all of the dashes and replaces them with spaces</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>CompNm <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "Reliance Industries Ltd"         "Mphasis"                        
  [3] "Kpmg"                            "Yes Bank"                       
@@ -338,45 +322,45 @@ superml installed</code></pre>
 <p>This is cheating a little bit, because I counted the number of characters in the first part of the URL manually, meaning this is not the most robust way to identify the company name, but observing our values it does not look like it caused any problems.</p>
 <p>Next let’s look at the Rating. When the file was read in it looks like it was read as a string, but it would be more useful to us as a number. We’ll start with a quick summary and completeness check.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>Rating <span class="sc">%&gt;%</span> <span class="fu">summary</span>() <span class="co">#summary of variable, understand scope</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>Rating <span class="sc">%&gt;%</span> <span class="fu">summary</span>() <span class="co">#summary of variable, understand scope</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   Length     Class      Mode 
    145209 character character </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(d1<span class="sc">$</span>Rating<span class="sc">==</span><span class="st">''</span>) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(d1<span class="sc">$</span>Rating)) <span class="co">#counts empty and missing values</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(d1<span class="sc">$</span>Rating<span class="sc">==</span><span class="st">''</span>) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(d1<span class="sc">$</span>Rating)) <span class="co">#counts empty and missing values</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>Rating <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>Rating <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "3.0" "5.0" "1.0" "4.0" "2.0"</code></pre>
 </div>
 </div>
 <p>So the variable is a string, but does not contain any missing or null values. All of the values fall under the five-point scale, so it should be safe to convert to a number.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> d1 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Rating =</span> <span class="fu">as.numeric</span>(Rating)</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>) <span class="co"># converts the Rating variable to numeric and saves it to the same variable.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> d1 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Rating =</span> <span class="fu">as.numeric</span>(Rating)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>) <span class="co"># converts the Rating variable to numeric and saves it to the same variable.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>One last variable to look at, <code>ReviewDetails</code>. This looks to have three parts to it. The status of the employee, the location, and the date the review was done. I’m most interested in the status for this exercise, but let’s see if we can get all three</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#str_split() breaks up the column by the dashes</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">#simplify = TRUE turns it into a matrix</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co"># dim() gives us the number of rows and columns of the matrix, expecting 3 cols</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">'-'</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">dim</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#str_split() breaks up the column by the dashes</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">#simplify = TRUE turns it into a matrix</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># dim() gives us the number of rows and columns of the matrix, expecting 3 cols</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">'-'</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">dim</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 145209      5</code></pre>
 </div>
 </div>
 <p>The intention was to split the variable by dashes to create three columns, however it looks like there are some values that contain a dash themselves. This causes two additional columns to appear, so we will have to make some adjustments.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#check for number of columns</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">dim</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#check for number of columns</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">dim</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 145209      3</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">#check for number of unique employee statuses</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>] <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#check for number of unique employee statuses</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>] <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "(Current Employee) "                                   
  [2] "(Former Employee) "                                    
@@ -389,8 +373,8 @@ superml installed</code></pre>
  [9] "Sr.G.M.Engineering and projects .   (Former Employee) "
 [10] "Hospitality   (Former Employee) "                      </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">#check for number of empty values</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ifelse</span>(<span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">3</span>] <span class="sc">==</span><span class="st">''</span>,<span class="dv">1</span>,<span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#check for number of empty values</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ifelse</span>(<span class="fu">str_split</span>(emp_rev<span class="sc">$</span>ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">3</span>] <span class="sc">==</span><span class="st">''</span>,<span class="dv">1</span>,<span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
@@ -398,51 +382,51 @@ superml installed</code></pre>
 <p>Fortunately, the solution is easier than it first appeared. Originally I was going to approach the split by splitting from the left and the right for Employee Status and Review Date, then removing everything thats in the left and right for location. However, the dashes that split the different details would have two additional spaces after each, so if we include that in the split function we can get the result we are looking for.</p>
 <p>The Employee Status section fo the Details field looks to have more than just the status for some observations. A quick check might be worth it to see if Employee Title would be worth pursuing.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># splits the columns then checks the first column for the employee status values,</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co">#then counts those that don't fall into the status value only</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>emp_rev <span class="sc">%&gt;%</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stat =</span> <span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>],</span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stat =</span> <span class="fu">ifelse</span>(Stat <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'(Current Employee) '</span>, <span class="st">'(Former Employee) '</span>), <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">select</span>(Stat) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># splits the columns then checks the first column for the employee status values,</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">#then counts those that don't fall into the status value only</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>emp_rev <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stat =</span> <span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>],</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stat =</span> <span class="fu">ifelse</span>(Stat <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'(Current Employee) '</span>, <span class="st">'(Former Employee) '</span>), <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">select</span>(Stat) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 523</code></pre>
 </div>
 </div>
 <p>With only 523 observations that fall outside of the Current or Former employee status, it’s relatively safe to ignore that part of the <code>ReviewDetails</code> field.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#saves the split column into three new variables.</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Review Date is tranformed into date format</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Employee status uses str_extract to get the status vales only</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Location uses trimws() to remove extrenuous blanks</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">ReviewDate =</span> (<span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">3</span>] <span class="sc">%&gt;%</span> </span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">parse_date_time</span>(<span class="st">'0m d, y'</span>)),</span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">EmployeeStatus =</span> (<span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>] <span class="sc">%&gt;%</span> </span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">str_extract</span>(<span class="st">'(Current Employee)|(Former Employee)'</span>)),</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Location =</span> (<span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">2</span>] <span class="sc">%&gt;%</span> </span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">trimws</span>())</span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="co"># checks for how many values actually have a location. </span></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="co">#Primarily to check if the column is worth using</span></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>d3<span class="sc">$</span>Location <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="sc">%&gt;%</span> <span class="fu">length</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">#saves the split column into three new variables.</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Review Date is tranformed into date format</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Employee status uses str_extract to get the status vales only</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Location uses trimws() to remove extrenuous blanks</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">ReviewDate =</span> (<span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">3</span>] <span class="sc">%&gt;%</span> </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">parse_date_time</span>(<span class="st">'0m d, y'</span>)),</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">EmployeeStatus =</span> (<span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>] <span class="sc">%&gt;%</span> </span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">str_extract</span>(<span class="st">'(Current Employee)|(Former Employee)'</span>)),</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Location =</span> (<span class="fu">str_split</span>(ReviewDetails, <span class="st">' -  '</span>, <span class="at">simplify =</span> <span class="cn">TRUE</span>)[,<span class="dv">2</span>] <span class="sc">%&gt;%</span> </span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">trimws</span>())</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># checks for how many values actually have a location. </span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="co">#Primarily to check if the column is worth using</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>d3<span class="sc">$</span>Location <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="sc">%&gt;%</span> <span class="fu">length</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 3780</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Checks to make sure only two values are in the status</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>d3<span class="sc">$</span>EmployeeStatus <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="sc">%&gt;%</span> <span class="fu">length</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Checks to make sure only two values are in the status</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>d3<span class="sc">$</span>EmployeeStatus <span class="sc">%&gt;%</span> <span class="fu">unique</span>() <span class="sc">%&gt;%</span> <span class="fu">length</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 2</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Null and empty checks for new columns. </span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#DatNull does not check for empties because of date format limitation</span></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">summarize</span>(</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">StatNull =</span> <span class="fu">sum</span>(EmployeeStatus <span class="sc">==</span> <span class="st">''</span>) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(EmployeeStatus)),</span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">DatNull =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(ReviewDate)),</span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">LocNull =</span> <span class="fu">sum</span>(Location<span class="sc">==</span><span class="st">''</span>) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(Location))</span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Null and empty checks for new columns. </span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">#DatNull does not check for empties because of date format limitation</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">summarize</span>(</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">StatNull =</span> <span class="fu">sum</span>(EmployeeStatus <span class="sc">==</span> <span class="st">''</span>) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(EmployeeStatus)),</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">DatNull =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(ReviewDate)),</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">LocNull =</span> <span class="fu">sum</span>(Location<span class="sc">==</span><span class="st">''</span>) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(Location))</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  StatNull DatNull LocNull
 1        0       0  129942</code></pre>
@@ -450,18 +434,18 @@ superml installed</code></pre>
 </div>
 <p>Location is a pretty empty field, so it can largely be ignored, otherwise our other two variables look great. From here we can move on to the Review text itself.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#lower cases the full review text</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> d3 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">CompleteReview =</span> <span class="fu">tolower</span>(CompleteReview)</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#lower cases the full review text</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> d3 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">CompleteReview =</span> <span class="fu">tolower</span>(CompleteReview)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Before we do anything we do anything with the reviews, the dataset is huge, and since the next step involves creating a bag of words it would probably be a good idea to filter the dataset. We will pick two companies to filter to as our companies of interest. First let’s look at the number of reviews by company.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">#checks the count of reviews by company name</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(CompNm) <span class="sc">%&gt;%</span> </span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">cnt =</span> <span class="fu">n</span>()</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>cnt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">#checks the count of reviews by company name</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(CompNm) <span class="sc">%&gt;%</span> </span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">cnt =</span> <span class="fu">n</span>()</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>cnt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 59 × 2
    CompNm                            cnt
@@ -481,18 +465,18 @@ superml installed</code></pre>
 </div>
 <p>Looking at the size, HP and Dell Technologies look pretty reasonable, so we can filter to those two and compare.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">#filters to reviews for HP and Dell Technologies, saves to new df</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>d4 <span class="ot">&lt;-</span> d3 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(CompNm <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'Dell Technologies'</span>, <span class="st">'HP'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">#filters to reviews for HP and Dell Technologies, saves to new df</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>d4 <span class="ot">&lt;-</span> d3 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(CompNm <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'Dell Technologies'</span>, <span class="st">'HP'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The next step will create a ‘bag of words’ commonly used for machine learning, but we’re going to use it this time for to get summary information about scores based on the appearance of words.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co">#initializes the class for CountVectorizer. </span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Only looking at top 100 most frequently used words</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>cfv <span class="ot">&lt;-</span> CountVectorizer<span class="sc">$</span><span class="fu">new</span>(<span class="at">max_features =</span> <span class="dv">100</span>)</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Transforms the occurence of each word across all reviews into a vector</span></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>cf_mat <span class="ot">&lt;-</span> cfv<span class="sc">$</span><span class="fu">fit_transform</span>(d4<span class="sc">$</span>CompleteReview)</span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="co">#transposed for readability</span></span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(cf_mat) <span class="sc">%&gt;%</span> <span class="fu">t</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#initializes the class for CountVectorizer. </span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Only looking at top 100 most frequently used words</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>cfv <span class="ot">&lt;-</span> CountVectorizer<span class="sc">$</span><span class="fu">new</span>(<span class="at">max_features =</span> <span class="dv">100</span>)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Transforms the occurence of each word across all reviews into a vector</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>cf_mat <span class="ot">&lt;-</span> cfv<span class="sc">$</span><span class="fu">fit_transform</span>(d4<span class="sc">$</span>CompleteReview)</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="co">#transposed for readability</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(cf_mat) <span class="sc">%&gt;%</span> <span class="fu">t</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>              [,1] [,2] [,3] [,4] [,5] [,6]
 work             1    1    1    1    1    0
@@ -599,14 +583,14 @@ services         0    0    0    0    0    0</code></pre>
 </div>
 <p>Now we combine the bag of words matrix to the dataframe to make summarizing a bit easier</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">#combines bag of words with orginal data frame</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>d5 <span class="ot">&lt;-</span> <span class="fu">cbind</span>(d4, cf_mat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">#combines bag of words with orginal data frame</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>d5 <span class="ot">&lt;-</span> <span class="fu">cbind</span>(d4, cf_mat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We can take a look at the average score for each word for both companies. Note that the average score is weighted by the number of appearances of a word, that is to say that if a word appears multiple times in a review the score will have a greater weight.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Multiples the rating by the appearance of each word, then sums that up for each word</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Then it divides by the total number of appearances of that word</span></span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>((d5<span class="sc">$</span>Rating <span class="sc">*</span> d5[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]) <span class="sc">%&gt;%</span> <span class="fu">colSums</span>())<span class="sc">/</span>(<span class="fu">colSums</span>(d5[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Multiples the rating by the appearance of each word, then sums that up for each word</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Then it divides by the total number of appearances of that word</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>((d5<span class="sc">$</span>Rating <span class="sc">*</span> d5[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]) <span class="sc">%&gt;%</span> <span class="fu">colSums</span>())<span class="sc">/</span>(<span class="fu">colSums</span>(d5[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         work          good    management       company         place 
      4.239728      4.152515      4.140500      4.208420      4.260095 
@@ -652,23 +636,23 @@ services         0    0    0    0    0    0</code></pre>
 </div>
 <p>Now lets split up the data by company and see if there are any differences.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Standard filters saved as new data frames</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>Dell <span class="ot">&lt;-</span> d5 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(CompNm <span class="sc">==</span> <span class="st">'Dell Technologies'</span>)</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>HP <span class="ot">&lt;-</span> d5 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(CompNm <span class="sc">==</span> <span class="st">'HP'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Standard filters saved as new data frames</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>Dell <span class="ot">&lt;-</span> d5 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(CompNm <span class="sc">==</span> <span class="st">'Dell Technologies'</span>)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>HP <span class="ot">&lt;-</span> d5 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(CompNm <span class="sc">==</span> <span class="st">'HP'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We can use the same logic as before to get the average score by word, but for each of our new dataframes for each company.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Finds the average score by word for Dell. Saves as dataframe</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>Dell_scores <span class="ot">&lt;-</span> ((Dell<span class="sc">$</span>Rating <span class="sc">*</span> Dell[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]) <span class="sc">%&gt;%</span></span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">colSums</span>())<span class="sc">/</span> (<span class="fu">colSums</span>(Dell[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>])) <span class="sc">%&gt;%</span> </span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a><span class="co">#Finds the average score by word for HP. Saves as dataframe</span></span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>HP_scores <span class="ot">&lt;-</span> ((HP<span class="sc">$</span>Rating <span class="sc">*</span> HP[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]) <span class="sc">%&gt;%</span> </span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>     <span class="fu">colSums</span>())<span class="sc">/</span>(<span class="fu">colSums</span>(HP[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>])) <span class="sc">%&gt;%</span> </span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>Dell_scores <span class="sc">%&gt;%</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Finds the average score by word for Dell. Saves as dataframe</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>Dell_scores <span class="ot">&lt;-</span> ((Dell<span class="sc">$</span>Rating <span class="sc">*</span> Dell[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]) <span class="sc">%&gt;%</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">colSums</span>())<span class="sc">/</span> (<span class="fu">colSums</span>(Dell[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>])) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="co">#Finds the average score by word for HP. Saves as dataframe</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>HP_scores <span class="ot">&lt;-</span> ((HP<span class="sc">$</span>Rating <span class="sc">*</span> HP[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>]) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>     <span class="fu">colSums</span>())<span class="sc">/</span>(<span class="fu">colSums</span>(HP[,<span class="dv">10</span><span class="sc">:</span><span class="dv">109</span>])) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>Dell_scores <span class="sc">%&gt;%</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                  .
 work       4.210822
@@ -678,7 +662,7 @@ company    4.172018
 place      4.226161
 team       4.212121</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>HP_scores <span class="sc">%&gt;%</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>HP_scores <span class="sc">%&gt;%</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                  .
 work       4.264388
@@ -691,16 +675,16 @@ team       4.229529</code></pre>
 </div>
 <p>Now we use these new data frames to check the difference in score for each word. This could be a potential way of identifying certain areas that employees of one company like or dislike more than employees of the other company.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co">#determines the difference in score each word</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>word_scores <span class="ot">&lt;-</span> Dell_scores <span class="sc">-</span> HP_scores</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="co">#updates the name of the score difference so it can be referenced</span></span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(word_scores) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'score_diff'</span>)</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="co">#sorts by the word score</span></span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>word_scores <span class="ot">&lt;-</span> word_scores <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>score_diff)</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a><span class="co">#creates a new variable called word, easier to reference than row names</span></span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>word_scores<span class="sc">$</span>word <span class="ot">&lt;-</span> <span class="fu">rownames</span>(word_scores)</span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(word_scores)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co">#determines the difference in score each word</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>word_scores <span class="ot">&lt;-</span> Dell_scores <span class="sc">-</span> HP_scores</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="co">#updates the name of the score difference so it can be referenced</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(word_scores) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'score_diff'</span>)</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="co">#sorts by the word score</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>word_scores <span class="ot">&lt;-</span> word_scores <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>score_diff)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="co">#creates a new variable called word, easier to reference than row names</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>word_scores<span class="sc">$</span>word <span class="ot">&lt;-</span> <span class="fu">rownames</span>(word_scores)</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(word_scores)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          score_diff      word
 dell       0.7941176      dell
@@ -713,11 +697,11 @@ also       0.1454323      also</code></pre>
 </div>
 <p>Ultimately we find the scores to not be so different, but we can still see words that tend to “lead” to higher scores than others. Interestingly, a review that includes either of the words Dell or HP would tend to be higher for Dell than HP,</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plots the difference in score by word.</span></span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>word_scores <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="fu">sum</span>(word_scores<span class="sc">$</span>score_diff<span class="sc">&gt;</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y=</span><span class="fu">fct_reorder</span>(word, score_diff),<span class="at">x=</span>score_diff)) <span class="sc">+</span></span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y=</span><span class="st">'Word'</span>, <span class="at">x=</span><span class="st">'Score Difference'</span>, <span class="at">title =</span> <span class="st">'Dell-HP Score Difference by Word'</span>) <span class="sc">+</span></span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">6</span>, <span class="at">angle =</span> <span class="dv">25</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plots the difference in score by word.</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>word_scores <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="fu">sum</span>(word_scores<span class="sc">$</span>score_diff<span class="sc">&gt;</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y=</span><span class="fu">fct_reorder</span>(word, score_diff),<span class="at">x=</span>score_diff)) <span class="sc">+</span></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y=</span><span class="st">'Word'</span>, <span class="at">x=</span><span class="st">'Score Difference'</span>, <span class="at">title =</span> <span class="st">'Dell-HP Score Difference by Word'</span>) <span class="sc">+</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">6</span>, <span class="at">angle =</span> <span class="dv">25</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">

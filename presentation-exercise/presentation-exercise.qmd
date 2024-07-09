@@ -1,5 +1,256 @@
 ---
 title: "Presentation Exercise"
+author: "William Hyltin ror910"
 ---
 
-Placeholder file for the future data/results presentation exercise.
+## Publication Quality Chart
+
+For this exercise we are tasked with recreating a high-quality publication level chart found online using R and various AI tools. I have chosen to recreate the area chart on [this page](https://fivethirtyeight.com/features/aging-congress-boomers/). Since this is coming from FiveThirtyEight and the original plot is interactive I have decided to recreate the plot with Highcharter.  
+
+First we are tasked with requesting AI (in this case I have chosen to use ChatGPT) to attempt to recreate the plot, which I do with my initial prompt here:  
+
+|   Can you provide code using Highcharter in R that would recreate the area plot titled "Baby boomers are the biggest generation in Congress today" on this page https://fivethirtyeight.com/features/aging-congress-boomers/  
+|   raw data can be found here: https://raw.githubusercontent.com/fivethirtyeight/data/master/congress-demographics/data_aging_congress.csv
+
+
+The first round of code had a handful of problems, primarily with processing the data, but it came pretty close in terms of structuring the overall request. I provided the column names in the raw data to help with processing, as well as correcting things like unnecessary filters.
+One of the outputs from ChatGPT ended up with pivoted data, which was not as easy to use for what we were doing, but the unpivoted data was still pretty close so I modified it myself and fed that back as a prompt.
+
+I'm still having problems with the highcharter section of code. I've modified the processing code slightly to adjust the pct values as well, because it did not look like it was previously giving the correct values for pct. I've also created a year variable to match what is done in the chart. Here is the processing code after my modifications:
+data1 <- data %>%
+  mutate(year = as.integer(str_sub(start_date, 1, 4))) %>% 
+  group_by(year, generation) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  group_by(year) %>% 
+  mutate(pct = count / sum(count) * 100)
+Can you utilize this dataframe without pivoting to create the chart in Highcharter?
+
+The output from this prompt got me most of the way there. The code runs, but some of the generations were out of order, and there were several tweaks needed to get the chart to look like the one on the page. Still the bones were there, so I took over from this point on, aside from some one off prompts to get exactly what I was looking for, with an example below.
+
+Can you adjust the tooltip in the chart to have the following format:
+Generation
+Year
+Percent (in percent format 00.0%)
+So for example:
+Missionary
+1937
+44.9%
+
+
+The code and output below is the final product after the combined efforts of ChatGPT and myself.
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(highcharter)
+
+# Read the data from the URL
+url <- "https://raw.githubusercontent.com/fivethirtyeight/data/master/congress-demographics/data_aging_congress.csv"
+data <- read_csv(url)
+
+# Calculate percentage of each generation in each congress
+data1 <- data %>%
+  mutate(year = as.integer(str_sub(start_date, 1, 4))) %>% 
+  group_by(year, generation) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  group_by(year) %>% 
+  mutate(pct = count / sum(count) * 100)
+```
+
+```{r}
+gen_order <- data %>% mutate(byear = as.integer(str_sub(birthday, 1, 4))) %>% group_by(generation) %>% summarize(oldyr = min(byear)) %>% arrange(by = oldyr) %>% select(generation)
+```
+
+```{r}
+data1$generation <- fct_rev(fct_relevel(data1$generation, as.vector(gen_order)))
+```
+
+```{r}
+generation_colors <- c(
+  "#D26E8C",
+  "#92DCE0",
+  "#A593E9",
+  "#FD867E",
+  "#FDE384",
+  "#86D09D",
+  "#8B8887",
+  "#E98CCA",
+  "#FFE7E5",
+  "#E9E9E9"
+)
+```
+
+```{r}
+highchart(type = "chart") %>%
+  hc_chart(type = "area") %>%
+  hc_title(text = "<b>Baby boomers are the biggest generation in Congress today</b>",
+           align = 'left',
+           style = list(fontSize = "24px",
+                        fontFamily = 'Calibri')) %>%
+  hc_subtitle(text = 'Share of members in Congress from each generation, 1919 to 2023',
+              align = 'left',
+              style = list(fontSize = "20px",
+                           fontFamily = 'Calibri')) %>% 
+  hc_xAxis(gridLineWidth = 0,
+    labels = list(
+    style = list(fontSize = "16px")
+    )
+    ) %>%
+  hc_yAxis(max = 100,
+           labels = list(
+      formatter = JS("function() {
+                      if (this.value == 100) {
+                        return this.value + '%';
+                      } else {
+                        return this.value;
+                      }
+                    }"),
+      style = list(fontSize = "16px")
+           )
+      ) %>%
+  hc_add_series(data1, "area", hcaes(x = year, y = pct, group = generation),
+                color = generation_colors) %>%
+  hc_legend(align = "left",
+            verticalAlign = "top",
+            layout = "horizontal",
+            itemStyle = list(fontFamily = 'Copperplate Gothic Light', fontSize = "12px")) %>%
+  hc_tooltip(
+    headerFormat = "<b>{series.name}</b><br/>",
+    pointFormat = "{point.x}<br/>{point.y:.1f}%",
+    crosshairs = TRUE
+  ) %>%
+  hc_plotOptions(
+    area = list(
+      stacking = "normal",
+      marker = list(enabled = FALSE,
+                    states = list(
+                      hover = list(
+                        enabled = FALSE
+                        )
+                      )
+                    )  # Disable markers
+      ),
+    series = list(
+      lineColor = '#EDF6E9',
+      trackByArea = TRUE,
+      stickyTracking = FALSE
+    )
+  ) %>% hc_add_theme(hc_theme_538())
+```
+
+I believe my output is pretty close to the original, with the exception of a few things like fonts, and the hover animations. I could not figure out how to get the crosshair for the tooltip to stay inside of the relevant generation group, nor could I figure out how to change the shape of the color indicators in the legend from circular to square, but even without those changes it still like it was high quality and close enough.
+
+## Publication Quality Tables
+
+Using the same dataset, I wanted create a quality table that would show what the congressional membership distribution but include things like the mean age and count of members. The chart above does a great job of showing the relative distribution and the change over time, but the actual age is still an important factor. For example, we may have a lot of Congress members from the Baby Boomer generation in today's Congress, but do they themselves skew younger or older?  
+I decided I would use GT tables. I can't say i have any experience with gt tables, so I thought this might be a challenge, but I was intrigued by the ability to use ggplots as images in the tables themself.
+I started off with ChatGPT again with the following prompt, continued off the prompts from teh Highcharter exercise:  
+
+|   Moving on to a new task with the same raw dataset. Can you create a publication quality table using the gt package in R with the following columns:  
+|   Generation, Mean Age, Count of Members, and an in-table distribution plot  
+|   And have the rows grouped by year, similar to a pivot table?  
+
+The output got some of the overall structure but was very lacking on the details, which again proved challenging due to my unfamiliarity with gt tables. For example, it knew I would need to create a way to call the plots formulaically, however it used the base histogram function instead of ggplot, which from what I can tell would not work with gt tables or at least not in an intuitive way. it also seemed to struggle with how to actually add the distribution plot in to the table, the code it generated would have added the plots after creating the tables initially, which is fine but it used the wrong functions to do so repeatedly.
+After trading prompts a number of times and getting mostly nowhere I decided to take matters into my own hands and researched how to use gt tables via the provided [tutorial](https://gt.albert-rapp.de/), which helped tremendously.
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(gt)
+
+# Read the data from the URL
+url <- "https://raw.githubusercontent.com/fivethirtyeight/data/master/congress-demographics/data_aging_congress.csv"
+data <- read_csv(url)
+```
+
+```{r}
+data2 <- data %>%
+  select(start_date, generation, age_years)
+
+# Extract year from start_date
+data2$year <- as.integer(substr(data2$start_date, 1, 4))
+
+data2 <- data2 %>% arrange(by = -year)
+
+gen_order <- data %>% mutate(byear = as.integer(str_sub(birthday, 1, 4))) %>% group_by(generation) %>% summarize(oldyr = min(byear)) %>% arrange(by = oldyr) %>% select(generation)
+
+data2$generation <- fct_rev(fct_relevel(data2$generation, as.vector(gen_order)))
+
+# Group by year and generation, calculate mean age and count of members
+data_summary <- data2 %>%
+  group_by(year, generation) %>%
+  summarise(mean_age = mean(age_years, na.rm = TRUE),
+            count_members = n()) %>%
+  ungroup() %>%
+  filter(!is.na(mean_age)) %>% arrange(by = -year) # Remove rows with NA mean_age for clarity
+```
+
+```{r}
+dist_plot <- function(fun_gen, fun_yr) {
+  full_range <- data2 %>% 
+  pull(age_years) %>% 
+  range()
+  
+  data2 %>% 
+    filter(generation == !!fun_gen, year == !!fun_yr) %>% 
+    ggplot() +
+    geom_violin(aes(x=age_years, y = generation), fill = 'black') +
+    theme_minimal() +
+    scale_y_discrete(breaks = NULL) +
+    scale_x_continuous(breaks = NULL) +
+    labs(x = element_blank(), y = element_blank()) +
+    coord_cartesian(xlim = full_range)
+}
+dist_plot('Boomers', 2021) #testing function and plot appearance
+```
+
+```{r}
+# Initialize the GT table
+gt_table <- data_summary %>%
+  group_by(generation, year) %>% 
+  mutate(Distribution = list(c(as.character(generation), year))) %>%
+  ungroup() %>% 
+  gt(groupname_col = 'year', rowname_col = 'generation') %>%
+  tab_header(
+    title = md("**Generation and Congress Membership Statistics**"),
+    subtitle = "Mean Age, Count of Members, and Distribution Plot by Year"
+  ) %>%
+  cols_label(
+    generation = md("**Generation**"),
+    mean_age = md("**Mean Age**"),
+    count_members = md("**Count**"),
+    Distribution = md('**Distribution**')
+  ) %>%
+  fmt_number(columns = c(mean_age), decimals = 0) %>% 
+  tab_style(
+    style = list(cell_text(weight = "bold")),
+    locations = cells_row_groups()
+  ) %>% 
+  tab_style(
+    style = cell_text(align = 'center'),
+    locations = cells_column_labels()
+  ) %>% 
+  text_transform(
+    locations = cells_body(columns = 'Distribution'),
+    fn = function(column) {
+      map(column, ~str_split_1(., ', ')) %>% 
+        map(~dist_plot(.[1], .[2])) %>% 
+        ggplot_image(height = px(30), aspect_ratio =  3)
+    }
+  ) %>%
+  tab_footnote(
+    "Note: Mean Age is rounded to nearest whole year. Distribution plots represent age distributions within each generation."
+  ) %>% 
+  tab_options(
+    data_row.padding = px(1),
+    row_group.padding = px(4)
+  )
+gt_table %>% 
+  opt_stylize(
+    style = 5, color = 'blue'
+    )
+```
+
+I'm fairly satisfied with the output. The inline violin charts were especially satisfying to make, and I'm happy with the availability of all the different customization options, while simultaneously there are several quick theme options to make styling even easier. That said, the syntax is less intuitive than I would prefer, I was truly hoping for a more ggplot-like experience.
