@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -164,9 +198,907 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Placeholder file for the future Tidy Tuesday exercise.</p>
+<p>For this exercise we are tasked with performing an analysis on the latest <a href="https://github.com/rfordatascience/tidytuesday">Tidy Tuesday</a> dataset. Given that the exercise is intended to give us an opportunity for an end to end analysis, I want to use this as an opportunity to show my thought process when it comes to an analysis. Likely this means there will be plenty of rambling and word vomit, but my intended focus is the work flow itself and less the end result. I will save the polished up manuscripts and final results for larger projects.<br>
+This week’s dataset is one on American Idol data, scraped from Wikipedia tables as I understand. I don’t have a lot of familiarity with the show since I’ve never been a fan myself, so one way or another this will absolutely be a learning experience.<br>
+We start by loading the dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#loading packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, here, tidytuesdayR, tidymodels, parsnip, skimr, viridis, caret, recipes, workflows, yardstick, kknn, earth, vip)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Installing package into 'C:/Users/Hylti/AppData/Local/R/win-library/4.3'
+(as 'lib' is unspecified)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>also installing the dependency 'cli'</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>package 'cli' successfully unpacked and MD5 sums checked
+package 'tidymodels' successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+    C:\Users\Hylti\AppData\Local\Temp\RtmpqK2XNZ\downloaded_packages</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+tidymodels installed</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#code below is taken from the tidy tuesday github</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>tuesdata <span class="ot">&lt;-</span> tidytuesdayR<span class="sc">::</span><span class="fu">tt_load</span>(<span class="st">'2024-07-23'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>--- Compiling #TidyTuesday Information for 2024-07-23 ----</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>--- There are 6 files available ---</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>--- Starting Download ---</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Downloading file 1 of 6: `auditions.csv`
+    Downloading file 2 of 6: `eliminations.csv`
+    Downloading file 3 of 6: `finalists.csv`
+    Downloading file 4 of 6: `ratings.csv`
+    Downloading file 5 of 6: `seasons.csv`
+    Downloading file 6 of 6: `songs.csv`</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>--- Download complete ---</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>auditions <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>auditions</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>eliminations <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>eliminations</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>finalists <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>finalists</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>ratings <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>ratings</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>seasons <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>seasons</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>songs <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>songs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><br>
+Then looking at the raw data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#lots of tables, so I'm using lapply to save myself some typing</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(<span class="fu">list</span>(auditions, eliminations, finalists, ratings, seasons, songs), head)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+# A tibble: 6 × 12
+  season audition_date_start audition_date_end audition_city      audition_venue
+   &lt;dbl&gt; &lt;date&gt;              &lt;date&gt;            &lt;chr&gt;              &lt;chr&gt;         
+1      1 2002-04-20          2002-04-22        Los Angeles, Cali… Westin Bonave…
+2      1 2002-04-23          2002-04-25        Seattle, Washingt… Hyatt Regency…
+3      1 2002-04-26          2002-04-28        Chicago, Illinois  Congress Plaz…
+4      1 2002-04-29          2002-05-01        New York City, Ne… Millenium Hil…
+5      1 2002-05-03          2002-05-05        Atlanta, Georgia   AmericasMart/…
+6      1 2002-05-05          2002-05-07        Dallas, Texas      Wyndham Anato…
+# ℹ 7 more variables: episodes &lt;chr&gt;, episode_air_date &lt;chr&gt;,
+#   callback_venue &lt;chr&gt;, callback_date_start &lt;date&gt;, callback_date_end &lt;date&gt;,
+#   tickets_to_hollywood &lt;dbl&gt;, guest_judge &lt;chr&gt;
+
+[[2]]
+# A tibble: 6 × 46
+  season place gender contestant        top_36 top_36_2 top_36_3 top_36_4 top_32
+   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt; 
+1      1 1     Female Kelly Clarkson    &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;  
+2      1 2     Male   Justin Guarini    &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;  
+3      1 3     Female Nikki McKibbin    &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;  
+4      1 4     Female Tamyra Gray       &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;  
+5      1 5     Male   R. J. Helton      &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;  
+6      1 6     Female Christina Christ… &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;  
+# ℹ 37 more variables: top_32_2 &lt;chr&gt;, top_32_3 &lt;chr&gt;, top_32_4 &lt;chr&gt;,
+#   top_30 &lt;chr&gt;, top_30_2 &lt;chr&gt;, top_30_3 &lt;chr&gt;, top_25 &lt;chr&gt;, top_25_2 &lt;chr&gt;,
+#   top_25_3 &lt;chr&gt;, top_24 &lt;chr&gt;, top_24_2 &lt;chr&gt;, top_24_3 &lt;chr&gt;, top_20 &lt;chr&gt;,
+#   top_20_2 &lt;chr&gt;, top_16 &lt;chr&gt;, top_14 &lt;chr&gt;, top_13 &lt;chr&gt;, top_12 &lt;chr&gt;,
+#   top_11 &lt;chr&gt;, top_11_2 &lt;chr&gt;, wildcard &lt;chr&gt;, comeback &lt;lgl&gt;, top_10 &lt;chr&gt;,
+#   top_9 &lt;chr&gt;, top_9_2 &lt;chr&gt;, top_8 &lt;chr&gt;, top_8_2 &lt;chr&gt;, top_7 &lt;chr&gt;,
+#   top_7_2 &lt;chr&gt;, top_6 &lt;chr&gt;, top_6_2 &lt;chr&gt;, top_5 &lt;chr&gt;, top_5_2 &lt;chr&gt;, …
+
+[[3]]
+# A tibble: 6 × 6
+  Contestant          Birthday  Birthplace           Hometown Description Season
+  &lt;chr&gt;               &lt;chr&gt;     &lt;chr&gt;                &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt;
+1 Kelly Clarkson      24-Apr-82 Fort Worth, Texas    Burleso… "She perfo…      1
+2 Justin Guarini      28-Oct-78 Columbus, Georgia    Doylest… "He perfor…      1
+3 Nikki McKibbin      28-Sep-78 Grand Prairie, Texas &lt;NA&gt;     "She had p…      1
+4 Tamyra Gray         26-Jul-79 Takoma Park, Maryla… Atlanta… "She had a…      1
+5 R. J. Helton        17-May-81 Pasadena, Texas      Cumming… "J. Helton…      1
+6 Christina Christian 21-Jun-81 Brooklyn, New York   &lt;NA&gt;     ".Christin…      1
+
+[[4]]
+# A tibble: 6 × 17
+  season show_number episode    airdate `18_49_rating_share` viewers_in_millions
+   &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;   &lt;chr&gt;                              &lt;dbl&gt;
+1      1           1 Auditions  June 1… 4.8                                 9.85
+2      1           2 Hollywood… June 1… 5.2                                11.2 
+3      1           3 Top 30: G… June 1… 5.2                                10.3 
+4      1           4 Top 30: G… June 1… 4.7                                 9.47
+5      1           5 Top 30: G… June 2… 4.5                                 9.08
+6      1           6 Top 30: G… June 2… 4.2                                 8.53
+# ℹ 11 more variables: timeslot_et &lt;chr&gt;, dvr_18_49 &lt;chr&gt;,
+#   dvr_viewers_millions &lt;chr&gt;, total_18_49 &lt;chr&gt;,
+#   total_viewers_millions &lt;chr&gt;, weekrank &lt;chr&gt;, ref &lt;lgl&gt;, share &lt;chr&gt;,
+#   nightlyrank &lt;dbl&gt;, rating_share_households &lt;chr&gt;, rating_share &lt;chr&gt;
+
+[[5]]
+# A tibble: 6 × 10
+  season winner     runner_up original_release original_network hosted_by judges
+   &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt; 
+1      1 Kelly Cla… Justin G… June 11&nbsp;(2002-0… Fox              Ryan Sea… Paula…
+2      2 Ruben Stu… Clay Aik… January 21&nbsp;(200… Fox              Ryan Sea… Paula…
+3      3 Fantasia … Diana De… January 19&nbsp;(200… Fox              Ryan Sea… Paula…
+4      4 Carrie Un… Bo Bice   January 18&nbsp;(200… Fox              Ryan Sea… Paula…
+5      5 Taylor Hi… Katharin… January 17&nbsp;(200… Fox              Ryan Sea… Paula…
+6      6 Jordin Sp… Blake Le… January 16&nbsp;(200… Fox              Ryan Sea… Paula…
+# ℹ 3 more variables: no_of_episodes &lt;dbl&gt;, finals_venue &lt;chr&gt;, mentor &lt;chr&gt;
+
+[[6]]
+# A tibble: 6 × 8
+  season    week                 order contestant song  artist song_theme result
+  &lt;chr&gt;     &lt;chr&gt;                &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;      &lt;chr&gt; 
+1 Season_01 20020618_top_30_gro…     1 Tamyra Gr… And … Jenni… &lt;NA&gt;       Advan…
+2 Season_01 20020618_top_30_gro…     2 Jim Verra… When… Doris… &lt;NA&gt;       Advan…
+3 Season_01 20020618_top_30_gro…     3 Adriel He… I'll… Edwin… &lt;NA&gt;       Elimi…
+4 Season_01 20020618_top_30_gro…     4 Rodesia E… Dayd… The M… &lt;NA&gt;       Elimi…
+5 Season_01 20020618_top_30_gro…     5 Natalie B… Crazy Patsy… &lt;NA&gt;       Elimi…
+6 Season_01 20020618_top_30_gro…     6 Brad Estr… Just… James… &lt;NA&gt;       Elimi…</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(<span class="fu">list</span>(auditions, eliminations, finalists, ratings, seasons, songs), skim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There was 1 warning in `dplyr::summarize()`.
+ℹ In argument: `dplyr::across(tidyselect::any_of(variable_names),
+  mangled_skimmers$funs)`.
+ℹ In group 0: .
+Caused by warning:
+! There were 20 warnings in `dplyr::summarize()`.
+The first warning was:
+ℹ In argument: `dplyr::across(tidyselect::any_of(variable_names),
+  mangled_skimmers$funs)`.
+Caused by warning in `grepl()`:
+! unable to translate 'Jos&lt;8e&gt; "Sway" Penala' to a wide string
+ℹ Run `dplyr::last_dplyr_warnings()` to see the 19 remaining warnings.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+── Data Summary ────────────────────────
+                           Values
+Name                       X[[i]]
+Number of rows             142   
+Number of columns          12    
+_______________________          
+Column type frequency:           
+  character                6     
+  Date                     4     
+  numeric                  2     
+________________________         
+Group variables            None  
+
+── Variable type: character ────────────────────────────────────────────────────
+  skim_variable    n_missing complete_rate min max empty n_unique whitespace
+1 audition_city            0        1       11  32     0       66          0
+2 audition_venue           0        1        7  50     0      115          0
+3 episodes               126        0.113    1  13     0        9          0
+4 episode_air_date        42        0.704    8  20     0       81          0
+5 callback_venue          43        0.697    7  51     0       84          0
+6 guest_judge            133        0.0634   9  19     0        8          0
+
+── Variable type: Date ─────────────────────────────────────────────────────────
+  skim_variable       n_missing complete_rate min        max        median    
+1 audition_date_start         0         1     2002-04-20 2019-09-21 2010-09-05
+2 audition_date_end           0         1     2002-04-22 2019-09-21 2010-09-05
+3 callback_date_start        13         0.908 2002-02-06 2019-09-21 2010-11-09
+4 callback_date_end          13         0.908 2002-02-06 2019-09-21 2010-11-10
+  n_unique
+1      131
+2      131
+3      118
+4      118
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable        n_missing complete_rate mean    sd p0 p25 p50 p75 p100
+1 season                       0         1     10.4  5.53  1   6  10  15   18
+2 tickets_to_hollywood        48         0.662 41.8 76.9   6  20  29  37  561
+  hist 
+1 ▅▅▆▅▇
+2 ▇▁▁▁▁
+
+[[2]]
+── Data Summary ────────────────────────
+                           Values
+Name                       X[[i]]
+Number of rows             456   
+Number of columns          46    
+_______________________          
+Column type frequency:           
+  character                44    
+  logical                  1     
+  numeric                  1     
+________________________         
+Group variables            None  
+
+── Variable type: character ────────────────────────────────────────────────────
+   skim_variable n_missing complete_rate min max empty n_unique whitespace
+ 1 place                 1       0.998     1   5     0       44          0
+ 2 gender                1       0.998     4   6     0        2          0
+ 3 contestant            1       0.998     3  21     0      454          0
+ 4 top_36              384       0.158     3  15     0        7          0
+ 5 top_36_2            394       0.136     3  15     0        7          0
+ 6 top_36_3            404       0.114     3  16     0        7          0
+ 7 top_36_4            435       0.0461    3  16     0        6          0
+ 8 top_32              424       0.0702    3  15     0        6          0
+ 9 top_32_2            427       0.0636    3  16     0        5          0
+10 top_32_3            433       0.0504    3  15     0        6          0
+11 top_32_4            436       0.0439    3  15     0        6          0
+12 top_30              426       0.0658    3  10     0        6          0
+13 top_30_2            431       0.0548    3  10     0        6          0
+14 top_30_3            436       0.0439    3  10     0        6          0
+15 top_25              431       0.0548    3  10     0        4          0
+16 top_25_2            436       0.0439    3  10     0        4          0
+17 top_25_3            440       0.0351    4  10     0        3          0
+18 top_24              240       0.474     3  10     0        5          0
+19 top_24_2            278       0.390     3  12     0        6          0
+20 top_24_3            360       0.211     4  13     0        4          0
+21 top_20              376       0.175     3  10     0        4          0
+22 top_20_2            424       0.0702    3  10     0        4          0
+23 top_16              440       0.0351    4  10     0        2          0
+24 top_14              428       0.0614    4  10     0        2          0
+25 top_13              404       0.114     4  14     0        5          0
+26 top_12              335       0.265     4  12     0        7          0
+27 top_11              312       0.316     4  15     0        8          0
+28 top_11_2            434       0.0482    4  12     0        3          0
+29 wildcard            350       0.232     3  21     0       11          0
+30 top_10              306       0.329     3  12     0       13          0
+31 top_9               348       0.237     4  15     0        9          0
+32 top_9_2             447       0.0197    4  10     0        2          0
+33 top_8               335       0.265     4  15     0        9          0
+34 top_8_2             440       0.0351    4  12     0        5          0
+35 top_7               344       0.246     4  15     0       10          0
+36 top_7_2             442       0.0307    4  12     0        3          0
+37 top_6               366       0.197     4  14     0       10          0
+38 top_6_2             450       0.0132    4  10     0        2          0
+39 top_5               381       0.164     4  12     0        5          0
+40 top_5_2             451       0.0110    4  13     0        2          0
+41 top_4               396       0.132     4  10     0        4          0
+42 top_4_2             452       0.00877   4  10     0        2          0
+43 top_3               411       0.0987    4  10     0        2          0
+44 finale              417       0.0855    6   9     0        6          0
+
+── Variable type: logical ──────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate mean count
+1 comeback            456             0  NaN ": " 
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate mean   sd p0 p25 p50 p75 p100 hist 
+1 season                0             1 8.86 5.21  1   4   8  13   18 ▇▅▇▅▆
+
+[[3]]
+── Data Summary ────────────────────────
+                           Values
+Name                       X[[i]]
+Number of rows             190   
+Number of columns          6     
+_______________________          
+Column type frequency:           
+  character                5     
+  numeric                  1     
+________________________         
+Group variables            None  
+
+── Variable type: character ────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate min  max empty n_unique whitespace
+1 Contestant            0         1       3   25     0      190          0
+2 Birthday              1         0.995   8    9     0      186          0
+3 Birthplace            6         0.968  11   30     0      163          0
+4 Hometown             88         0.537  11   26     0       96          0
+5 Description          12         0.937  26 1206     0      178          0
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate mean   sd p0 p25 p50 p75 p100 hist 
+1 Season                0             1 8.86 4.86  1   5   9  13   17 ▇▆▅▆▇
+
+[[4]]
+── Data Summary ────────────────────────
+                           Values
+Name                       X[[i]]
+Number of rows             593   
+Number of columns          17    
+_______________________          
+Column type frequency:           
+  character                12    
+  logical                  1     
+  numeric                  4     
+________________________         
+Group variables            None  
+
+── Variable type: character ────────────────────────────────────────────────────
+   skim_variable           n_missing complete_rate min max empty n_unique
+ 1 episode                         0        1        6  62     0      313
+ 2 airdate                         0        1        5  17     0      590
+ 3 18_49_rating_share              0        1        1   9     0      373
+ 4 timeslot_et                   515        0.132   16  19     0        8
+ 5 dvr_18_49                     539        0.0911   1   3     0        5
+ 6 dvr_viewers_millions          539        0.0911   1   4     0       45
+ 7 total_18_49                   539        0.0911   1   3     0       16
+ 8 total_viewers_millions        539        0.0911   1   5     0       49
+ 9 weekrank                      101        0.830    1   4     0       28
+10 share                         449        0.243    1   3     0       21
+11 rating_share_households       515        0.132    7   9     0       55
+12 rating_share                  284        0.521    1   9     0      195
+   whitespace
+ 1          0
+ 2          0
+ 3          0
+ 4          0
+ 5          0
+ 6          0
+ 7          0
+ 8          0
+ 9          0
+10          0
+11          0
+12          0
+
+── Variable type: logical ──────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate mean count
+1 ref                 593             0  NaN ": " 
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable       n_missing complete_rate  mean     sd   p0  p25  p50  p75
+1 season                      0        1       8.30  4.63  1     4    8   12  
+2 show_number                 0        1      19.2  11.7   1     9   18   29  
+3 viewers_in_millions         3        0.995  19.9   7.76  5.38 12.6 21.8 26.1
+4 nightlyrank               569        0.0405  2.08  0.929 1     1    2    3  
+  p100 hist 
+1 18   ▇▆▇▃▃
+2 44   ▇▇▆▆▃
+3 38.1 ▆▃▇▆▁
+4  4   ▆▇▁▃▂
+
+[[5]]
+── Data Summary ────────────────────────
+                           Values
+Name                       X[[i]]
+Number of rows             18    
+Number of columns          10    
+_______________________          
+Column type frequency:           
+  character                8     
+  numeric                  2     
+________________________         
+Group variables            None  
+
+── Variable type: character ────────────────────────────────────────────────────
+  skim_variable    n_missing complete_rate min max empty n_unique whitespace
+1 winner                   0         1       8  16     0       18          0
+2 runner_up                0         1       7  20     0       18          0
+3 original_release         0         1      47  53     0       18          0
+4 original_network         0         1       3   3     0        2          0
+5 hosted_by                0         1      13  30     0        2          0
+6 judges                   0         1      37  64     0        8          0
+7 finals_venue             3         0.833  13  23     0        4          0
+8 mentor                  16         0.111  12  15     0        2          0
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable  n_missing complete_rate mean   sd p0   p25  p50  p75 p100 hist 
+1 season                 0         1      9.5 5.34  1  5.25  9.5 13.8   18 ▇▆▇▆▇
+2 no_of_episodes        14         0.222 19.5 3.32 16 18.2  19   20.2   24 ▃▇▁▁▃
+
+[[6]]
+── Data Summary ────────────────────────
+                           Values
+Name                       X[[i]]
+Number of rows             2429  
+Number of columns          8     
+_______________________          
+Column type frequency:           
+  character                7     
+  numeric                  1     
+________________________         
+Group variables            None  
+
+── Variable type: character ────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate min max empty n_unique whitespace
+1 season                0         1       9   9     0       18          0
+2 week                  0         1       8  54     0      186          0
+3 contestant            0         1       1  51     0      565          0
+4 song                  0         1       1  64     0     1512          0
+5 artist                0         1       2 513     0      921          0
+6 song_theme         1656         0.318   4  33     0      157          0
+7 result               30         0.988   1  25     0       53          0
+
+── Variable type: numeric ──────────────────────────────────────────────────────
+  skim_variable n_missing complete_rate mean   sd p0 p25 p50 p75 p100 hist 
+1 order                 0             1 5.93 4.21  1   3   5   8   40 ▇▂▁▁▁</code></pre>
+</div>
+</div>
+<p><br>
+A lot of missing values across several different variables and tables. I want to start with the contestants, namely the finalists. The finalists dataset has Hometown and Birthplace, with many missing hometown but few missing birthplace. Looking at the tables on Wikipedia, it appears that many of the people with missing Hometowns in the dataset have their birthplace listed as their hometown. I check around 10 of them across different seasons, which may not be a lot but for the sake of this exercise is enough to make me comfortable to impute the hometown with their birthplace when it’s missing. I think Hometown is a more meaningful variable, so if I do something like determining the impact of location on advancement I think hometown is the more reasonable method. Last thing to note, season 18 is included in the eliminations and song datasets but not the finalists dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># logical if_else statement to impute birthplace only when hometown is missing</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>finalists2 <span class="ot">&lt;-</span> finalists <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hometown =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(Hometown), Birthplace, Hometown)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><br>
+There are only a few with missing hometowns now, and I’m tempted to impute these manually by referencing the material found in Wikipedia since it looks like it’s mostly available there. I will resist the urge for now, moving on to joining some of the dataframes for a master finalist dataset.<br>
+Eliminations has the placement of the contestants, as well as their gender, so I want to bring those in. There’s much more in eliminations, but the format of the show is inconsistent across seasons so there would be a lot of cleaning to do to make the data more analysis-friendly. For example, I’d be interested in getting the episode someone is eliminated to then bring in things like ratings and viewership of said episodes, but there aren’t common keys across ratings, songs, or eliminations datasets, which would have the data necessary to accomplish that. For now, I think the placement can serve as the contestants success variable and ratings and viewership will have to be a little more disjointed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># left join to keep everything from finalists</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>finalists3 <span class="ot">&lt;-</span> finalists2 <span class="sc">%&gt;%</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(eliminations,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">join_by</span>(Contestant <span class="sc">==</span> contestant, Season <span class="sc">==</span> season)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(<span class="fu">names</span>(finalists2), place, gender))</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>finalists3 <span class="sc">%&gt;%</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 8
+  Contestant        Birthday Birthplace Hometown Description Season place gender
+  &lt;chr&gt;             &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+1 Kelly Clarkson    24-Apr-… Fort Wort… Burleso… "She perfo…      1 1     Female
+2 Justin Guarini    28-Oct-… Columbus,… Doylest… "He perfor…      1 2     Male  
+3 Nikki McKibbin    28-Sep-… Grand Pra… Grand P… "She had p…      1 3     Female
+4 Tamyra Gray       26-Jul-… Takoma Pa… Atlanta… "She had a…      1 4     Female
+5 R. J. Helton      17-May-… Pasadena,… Cumming… "J. Helton…      1 5     Male  
+6 Christina Christ… 21-Jun-… Brooklyn,… Brookly… ".Christin…      1 6     Female</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>finalists3 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">is.na</span>(place))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 8
+  Contestant        Birthday Birthplace Hometown Description Season place gender
+  &lt;chr&gt;             &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+1 "Rebecca \"Becky… 13-Jul-… Dobbs Fer… Dobbs F… "Her origi…      5 &lt;NA&gt;  &lt;NA&gt;  
+2 "William \"Will\… 2-Mar-89 The Woodl… The Woo… "In high s…      5 &lt;NA&gt;  &lt;NA&gt;  
+3 "Jos\x8e \"Sway\… 23-Jan-… &lt;NA&gt;       &lt;NA&gt;     "He was th…      5 &lt;NA&gt;  &lt;NA&gt;  
+4 "Bobby Bennett, … 4-Jun-86 Denver, C… Denver,… "(born Jun…      5 &lt;NA&gt;  &lt;NA&gt;  
+5 "Chikezie Eze"    11-Sep-… Inglewood… Inglewo… "During th…      7 &lt;NA&gt;  &lt;NA&gt;  
+6 "Uch\x8e"         15-Jul-… Sugarland… Sugarla… "As a chil…     17 &lt;NA&gt;  &lt;NA&gt;  </code></pre>
+</div>
+</div>
+<p><br>
+A few contestants have some foreign characters characters in their names, and the way the tables were read looks like there is some discrepancy that caused different values across our datasets. I will have to correct this first and then join the datasets.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Some simple string replacements and conditionals to fix names prior to join</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>finalists4 <span class="ot">&lt;-</span> finalists2 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Contestant =</span> <span class="fu">str_replace_all</span>(Contestant, <span class="st">'</span><span class="sc">\x8e</span><span class="st">'</span>, <span class="st">'é'</span>),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Contestant =</span> <span class="fu">if_else</span>(Contestant <span class="sc">==</span> <span class="st">'Chikezie Eze'</span>, <span class="st">'Chikezie'</span>, Contestant),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Nickname =</span> <span class="fu">trimws</span>(<span class="fu">str_extract</span>(Contestant, <span class="st">'".*?"'</span>), <span class="at">whitespace =</span> <span class="st">'"'</span>),</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Contestant =</span> <span class="fu">if_else</span>(<span class="sc">!</span><span class="fu">is.na</span>(Nickname) <span class="sc">&amp;</span> Nickname <span class="sc">!=</span> <span class="st">'Sway'</span>, <span class="fu">paste</span>(Nickname, <span class="fu">word</span>(Contestant, <span class="sc">-</span><span class="dv">1</span>)), Contestant),</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Contestant =</span> <span class="fu">if_else</span>(Contestant <span class="sc">==</span> <span class="st">'Bobby Bennett, Jr.'</span>, <span class="st">'Bobby Bennett'</span>, Contestant)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Nickname) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(eliminations,</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>            <span class="fu">join_by</span>(Contestant <span class="sc">==</span> contestant, Season <span class="sc">==</span> season)</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(<span class="fu">names</span>(finalists2), place, gender)) <span class="co"># only want two variables from eliminations</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>finalists4 <span class="sc">%&gt;%</span> <span class="fu">head</span>() <span class="co"># checking new variables look right</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 8
+  Contestant        Birthday Birthplace Hometown Description Season place gender
+  &lt;chr&gt;             &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+1 Kelly Clarkson    24-Apr-… Fort Wort… Burleso… "She perfo…      1 1     Female
+2 Justin Guarini    28-Oct-… Columbus,… Doylest… "He perfor…      1 2     Male  
+3 Nikki McKibbin    28-Sep-… Grand Pra… Grand P… "She had p…      1 3     Female
+4 Tamyra Gray       26-Jul-… Takoma Pa… Atlanta… "She had a…      1 4     Female
+5 R. J. Helton      17-May-… Pasadena,… Cumming… "J. Helton…      1 5     Male  
+6 Christina Christ… 21-Jun-… Brooklyn,… Brookly… ".Christin…      1 6     Female</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>finalists4 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">is.na</span>(place)) <span class="co"># checking for any nulls from poor join</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 8
+# ℹ 8 variables: Contestant &lt;chr&gt;, Birthday &lt;chr&gt;, Birthplace &lt;chr&gt;,
+#   Hometown &lt;chr&gt;, Description &lt;chr&gt;, Season &lt;dbl&gt;, place &lt;chr&gt;, gender &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p><br>
+Note that I had to manually override Bobby Bennett’s name because there are other contestants with a “Jr.” suffix that were able to join across the tables.<br>
+From the eliminations dataset we brought over the place that each finalist ultimately ended the show in. However, in several instances multiple contestants are eliminated at a time, so they’re placements are listed in the table as a range, e.g.&nbsp;9-10. We can arguably say these contestants tied for the higher place in the range, so in the 9-10 example two contestants tied for 9th place. So let’s recode those placements accordingly.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># regex to extract only the first number from range placements</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>finalists5 <span class="ot">&lt;-</span> finalists4 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">numplace =</span> <span class="fu">as.numeric</span>(<span class="fu">str_extract</span>(place,<span class="st">'(^[0-9]+)'</span>))</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now the new variable is coded to have only one value and is numeric. At this point it’s a little unclear how useful that will really be, since it’s an integer scale and for many regression problems wouldn’t be appropriate, but we can come back to that later.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># splits up Hometown into city and state, since State will be a smaller category</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>finalists6 <span class="ot">&lt;-</span> finalists5 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">HomeState =</span> <span class="fu">trimws</span>(<span class="fu">str_split_fixed</span>(Hometown, <span class="st">','</span>,<span class="dv">2</span>)[,<span class="dv">2</span>]),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">HomeCity =</span> <span class="fu">str_split_fixed</span>(Hometown, <span class="st">','</span>,<span class="dv">2</span>)[,<span class="dv">1</span>]</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>finalists6<span class="sc">$</span>HomeState <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Texas"             "Pennsylvania"      "Georgia"          
+ [4] "New York"          "California"        "Washington"       
+ [7] "Illinois"          "Alabama"           "North Carolina"   
+[10] "Tennessee"         "Utah"              "Connecticut"      
+[13] "Ohio"              "Hawaii"            ""                 
+[16] "Idaho"             "Maui"              "Canada"           
+[19] "Oklahoma"          "New Jersey"        "Florida"          
+[22] "Nevada"            "Louisiana"         "Massachusetts"    
+[25] "Arkansas"          "Colorado"          "Arizona"          
+[28] "Michigan"          "Virginia"          "South Carolina"   
+[31] "Ireland"           "Oregon"            "Western Australia"
+[34] "Indiana"           "Wisconsin"         "Merseyside"       
+[37] "Mississippi"       "Rhode Island"      "Karen Carpenter"  
+[40] "New Hampshire"     "Iowa"              "Maryland"         </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>finalists6 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(HomeState <span class="sc">==</span> <span class="st">'Karen Carpenter'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 11
+  Contestant    Birthday  Birthplace    Hometown Description Season place gender
+  &lt;chr&gt;         &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+1 Amber Holcomb 17-Mar-94 e Dion, Kare… e Dion,… "She origi…     12 4     Female
+# ℹ 3 more variables: numplace &lt;dbl&gt;, HomeState &lt;chr&gt;, HomeCity &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p><br>
+There’s a stray ‘Karen Carpenter’ in one value for the new State variable, and looking at the value it appears to be an issue with the original Birthplace variable. We can take care of this easily by recoding the variable manually.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manually correcting incorrect location variables for the one contestant</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>finalists7 <span class="ot">&lt;-</span> finalists6 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Birthplace =</span> <span class="fu">if_else</span>(Birthplace <span class="sc">==</span> <span class="st">'e Dion, Karen Carpenter'</span>, <span class="cn">NA</span>, Birthplace),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hometown =</span> <span class="fu">if_else</span>(Hometown <span class="sc">==</span> <span class="st">'e Dion, Karen Carpenter'</span>, <span class="cn">NA</span>, Hometown),</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">HomeState =</span> <span class="fu">if_else</span>(HomeState <span class="sc">==</span> <span class="st">'Karen Carpenter'</span>, <span class="cn">NA</span>, HomeState),</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">HomeCity =</span> <span class="fu">if_else</span>(HomeCity <span class="sc">==</span> <span class="st">'e Dion'</span>, <span class="cn">NA</span>, HomeCity)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>finalists7 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(HomeState <span class="sc">==</span> <span class="st">'Karen Carpenter'</span><span class="sc">|</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>                        Birthplace <span class="sc">==</span> <span class="st">'e Dion, Karen Carpenter'</span><span class="sc">|</span> </span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>                        Hometown <span class="sc">==</span> <span class="st">'e Dion, Karen Carpenter'</span> <span class="sc">|</span> </span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>                        HomeState <span class="sc">==</span> <span class="st">'Karen Carpenter'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 11
+# ℹ 11 variables: Contestant &lt;chr&gt;, Birthday &lt;chr&gt;, Birthplace &lt;chr&gt;,
+#   Hometown &lt;chr&gt;, Description &lt;chr&gt;, Season &lt;dbl&gt;, place &lt;chr&gt;, gender &lt;chr&gt;,
+#   numplace &lt;dbl&gt;, HomeState &lt;chr&gt;, HomeCity &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p>Another variable that might be interesting is age. We have birthdate, however since we have multiple seasons across different years it’s not valuable to us like it is. To remedy this, I will use the auditions dataset to extract a contestant’s age at the time of audition start.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simplifies Audition data to just get needed dates</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>AuditionStarts <span class="ot">&lt;-</span> auditions <span class="sc">%&gt;%</span> </span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(season) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">AudStart =</span> <span class="fu">min</span>(audition_date_start)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co">#joins simplified audition data, converts Birthday to date, </span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co">#imputes missing contest birthday, and calculates Age at start of auditions</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>finalists8 <span class="ot">&lt;-</span> finalists7 <span class="sc">%&gt;%</span> </span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(AuditionStarts, <span class="fu">join_by</span>(Season <span class="sc">==</span> season)) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Birthday =</span> <span class="fu">dmy</span>(Birthday),</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">Birthday =</span> <span class="fu">if_else</span>(Contestant <span class="sc">==</span> <span class="st">'Jax'</span>, <span class="fu">ymd</span>(<span class="st">'1996-05-05'</span>), Birthday),</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age =</span> <span class="fu">floor</span>(<span class="fu">as.numeric</span>(<span class="fu">interval</span>(Birthday, AudStart), <span class="st">'years'</span>))</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>         )</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>finalists8 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">is.na</span>(Birthday))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 13
+# ℹ 13 variables: Contestant &lt;chr&gt;, Birthday &lt;date&gt;, Birthplace &lt;chr&gt;,
+#   Hometown &lt;chr&gt;, Description &lt;chr&gt;, Season &lt;dbl&gt;, place &lt;chr&gt;, gender &lt;chr&gt;,
+#   numplace &lt;dbl&gt;, HomeState &lt;chr&gt;, HomeCity &lt;chr&gt;, AudStart &lt;date&gt;, Age &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p><br>
+This gets us the Age for every finalist at the start of their respective season’s audition start. I could have tried to extract the location of their audition from the Description column and then used that to match up the audition date instead, but this is quicker, quite frankly. One person did not have a value in the Birthday column, and in this case I imputed it manually because the information is available from Wikipedia quickly, and missing numeric values are a much greater problem for model building than missing categorical variables are.</p>
+<p>That should have the values fixed and additional variables added. Now let’s do a little exploring.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># group bar chart of placement counts by gender</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>finalists8 <span class="sc">%&gt;%</span> </span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(numplace <span class="sc">&lt;=</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(numplace, gender) <span class="sc">%&gt;%</span> </span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">cnt =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">fill =</span> gender, <span class="at">y =</span> cnt, <span class="at">x=</span>numplace), <span class="at">position =</span> <span class="st">'dodge'</span>, <span class="at">stat =</span> <span class="st">'identity'</span>) <span class="sc">+</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'#D81561'</span>, <span class="st">'#1379BF'</span>)) <span class="sc">+</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'Distribution of Top 10 Male and Female Finalists'</span>, <span class="at">x =</span> <span class="st">'Placement'</span>, <span class="at">y =</span> <span class="st">'Count'</span>, <span class="at">fill =</span> <span class="st">'Gender'</span>) <span class="sc">+</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(), <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">'gray'</span>)) <span class="sc">+</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">1</span>,<span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'numplace'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tidytuesday-exercise_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creates a simplified dataset of Homestate contestant frequencies</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>HSOrder <span class="ot">&lt;-</span> finalists8 <span class="sc">%&gt;%</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(numplace <span class="sc">&lt;=</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HomeState) <span class="sc">%&gt;%</span> </span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ordercnt =</span> <span class="fu">n</span>()</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="co">#joins above HomeState data so that it can used to reorder HomeState variable by</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="co">#total frequency. Horizontal bar chart of location color-coded by placement</span></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>finalists8 <span class="sc">%&gt;%</span> </span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(numplace <span class="sc">&lt;=</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(numplace, HomeState) <span class="sc">%&gt;%</span> </span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">cnt =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(HSOrder, <span class="fu">join_by</span>(HomeState<span class="sc">==</span>HomeState)) <span class="sc">%&gt;%</span> </span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">fill =</span> numplace, <span class="at">y =</span> <span class="fu">fct_reorder</span>(HomeState, ordercnt), <span class="at">x=</span>cnt), <span class="at">position =</span> <span class="st">'stack'</span>, <span class="at">stat =</span> <span class="st">'identity'</span>) <span class="sc">+</span></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis</span>(<span class="at">option =</span> <span class="st">'mako'</span>) <span class="sc">+</span></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'Count and Placement of Finalists by State'</span>, <span class="at">x =</span> <span class="st">'Count'</span>, <span class="at">y =</span> <span class="st">'Home State'</span>, <span class="at">fill =</span> <span class="st">'Placement'</span>) <span class="sc">+</span></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(), <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">'gray'</span>), <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>)) <span class="sc">+</span></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>),<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'numplace'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tidytuesday-exercise_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scatterplot of Age by Placement, stratified by Gender. Jitter used for readability</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>finalists8 <span class="sc">%&gt;%</span> </span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="fu">aes</span>(<span class="at">color =</span> gender, <span class="at">y =</span> numplace, <span class="at">x=</span>Age)) <span class="sc">+</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'Placement vs Age, Stratified by Gender'</span>, <span class="at">x =</span> <span class="st">'Age'</span>, <span class="at">y =</span> <span class="st">'Placement'</span>, <span class="at">color =</span> <span class="st">'Gender'</span>) <span class="sc">+</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(), </span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(), </span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">'gray'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tidytuesday-exercise_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><br>
+The exploratory charts were made to see if there was a relationship between a contestant’s Home State, their gender, or Age and their placement in the competition. Truthfully looking at these charts nothing is really jumping out at me, which surprises me at least a little, especially for Age and Gender. Despite seeing no obvious relationship, I think this is a good opportunity to see if a model would tell us any differently. On paper it looks like the competition is fairly non-discriminatory, at least with the people that make it a far as a finalist, so if a more rigorous statistical method like a model says otherwise then that would be interesting. If not, well that’s good for American Idol right?.<br>
+First we’ll need to prepare the data a bit:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Preparing data for only needed predictors</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>modeldata <span class="ot">&lt;-</span> finalists8 <span class="sc">%&gt;%</span> </span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">top3 =</span> <span class="fu">as.factor</span>(<span class="fu">if_else</span>(numplace <span class="sc">&lt;=</span> <span class="dv">3</span>, <span class="dv">1</span>,<span class="dv">0</span>))</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(gender, HomeState, Age, top3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><br>
+We now have only the variables of interest for our models in the dataset. It’s only four predictors, but given that the number of observations is also relatively small, a simple model is probably for the best. Let’s start with a logistic regression model:</p>
+<section id="logistic-regression" class="level4">
+<h4 class="anchored" data-anchor-id="logistic-regression">Logistic Regression</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>logreg <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">'glm'</span>)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>trainpart <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(modeldata<span class="sc">$</span>top3, <span class="at">p=</span>.<span class="dv">7</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>modeltrain <span class="ot">&lt;-</span> modeldata[trainpart,]</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>modeltest <span class="ot">&lt;-</span> modeldata[<span class="sc">-</span>trainpart,]</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>simprecipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(top3 <span class="sc">~</span> ., <span class="at">data =</span> modeltrain) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_interact</span>(<span class="at">terms =</span> <span class="sc">~</span> Age<span class="sc">:</span>gender) <span class="sc">%&gt;%</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_novel</span>(HomeState) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_unknown</span>(HomeState) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(HomeState,gender)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>logrecipe <span class="ot">&lt;-</span> simprecipe <span class="sc">%&gt;%</span> </span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(Age)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>logreg_wflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(logreg) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(logrecipe)</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>logreg_fit <span class="ot">&lt;-</span> logreg_wflow <span class="sc">%&gt;%</span> <span class="fu">fit</span>(<span class="at">data =</span> modeltrain)</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>logpreds_results <span class="ot">&lt;-</span> logreg_fit <span class="sc">%&gt;%</span> <span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span> <span class="fu">tidy</span>()</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>logpreds_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 44 × 5
+   term                  estimate std.error  statistic p.value
+   &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;
+ 1 (Intercept)            -19.5    5328.    -0.00365    0.997 
+ 2 Age                     -0.717     0.441 -1.62       0.104 
+ 3 Age_x_genderMale         0.261     0.154  1.70       0.0899
+ 4 HomeState_Alabama       18.3    5328.     0.00343    0.997 
+ 5 HomeState_Arizona       18.3    5328.     0.00343    0.997 
+ 6 HomeState_Arkansas      39.3   12002.     0.00328    0.997 
+ 7 HomeState_California    16.7    5328.     0.00313    0.998 
+ 8 HomeState_Colorado      -0.646 12002.    -0.0000538  1.00  
+ 9 HomeState_Connecticut   -1.03  12002.    -0.0000857  1.00  
+10 HomeState_Florida       -0.441  6231.    -0.0000708  1.00  
+# ℹ 34 more rows</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>testpreds <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">top3 =</span> modeltest<span class="sc">$</span>top3,</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(logreg_fit, modeltest),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(logreg_fit, modeltest, <span class="at">type =</span> <span class="st">'prob'</span>)</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases
+Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(testpreds) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'top3'</span>, <span class="st">'logpreds'</span>, <span class="st">'log0'</span>, <span class="st">'log1'</span>)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>modelperf <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">acc_log =</span> <span class="fu">accuracy</span>(testpreds, top3, logpreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">prec_log =</span> <span class="fu">precision</span>(testpreds, top3, logpreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">rec_log =</span> <span class="fu">recall</span>(testpreds, top3, logpreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">spec_log =</span> <span class="fu">specificity</span>(testpreds, top3, logpreds, <span class="at">event_level =</span> <span class="st">'second'</span>)</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(modelperf) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'metric'</span>, <span class="st">'estimator'</span>, <span class="st">'log_reg'</span>)</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>modelperf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  metric      estimator log_reg
+  &lt;chr&gt;       &lt;chr&gt;       &lt;dbl&gt;
+1 accuracy    binary      0.696
+2 precision   binary      0.364
+3 recall      binary      0.286
+4 specificity binary      0.833</code></pre>
+</div>
+</div>
+<p><br>
+The logistic regression model is pretty terrible, but there are a few things to glean here. First off, originally I had run this model without the interaction between Age and Gender, and the p-values for all predictors were well above any rejection threshold. However, including the interaction drastically changes the results for Age and Gender. Age alone is still not significant against any alpha level with a p-value of 0.1042617, but against an alpha level of 0.1 the interaction of Age and Gender is significant with a p-value of 0.0899354. Similarly Gender alone is significant at an alpha level of 0.1 with a p-value of 0.0690929. one could interpret these results as two finalists of the same age but different gender have different odds of making it to the top 3. An alpha level of 0.1 may not be the most stringent or typical value, but this example was not intended to be the most rigorous so I feel comfortable taking the liberty. The location variables are all basically worthless, though surprisingly taking them out causes the model to guess every contestant as Negative, that they would not make it to the top 3. That likely means some feature selection would be necessary if there was any intention of taking this model any further.<br>
+Prediction performance for the model is what truly reveals the quality. The accuracy at first glance seems not totally terrible; with a value of 0.6964286, it’s better than flipping a coin at least. However, it is important to remember this is whether a finalist makes it to the top 3 or not. One season has more than 20 finalists, so in that instance there is a 98.5% chance of randomly choosing someone who is not in the top 3. In fact, among the finalists in our dataset only 25.2631579% of contestants make the top 3, meaning if the model were to guess that nobody made the top 3 it would have an accuracy value of 74.7368421%. This is also made clear by the poor Recall value of 0.2857143, essentially saying that out of the actual positive examples, few are predicted correctly.<br>
+Despite the poor predictive performance this model suggests a relationship may exist, and warrants some more exploration. I will try a few more models to see if I get different results.<br>
+The scatterplot from earlier makes me think there may be some possibility of groupings based on the predictor variables. If you look at the bottom part of the scatter plot, where the top three would be, there seem to be a possible difference in Age and Gender amongst who was in the top 3. this leads me to think a KNN model might be possible, though this will largely depend on if those differences amongst the top 3 are also apparent for those not in the top 3.</p>
+</section>
+<section id="k-nearest-neighbors" class="level4">
+<h4 class="anchored" data-anchor-id="k-nearest-neighbors">K-Nearest Neighbors</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>knnmodel <span class="ot">&lt;-</span> <span class="fu">nearest_neighbor</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">'kknn'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">'classification'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>knnrecipe <span class="ot">&lt;-</span> simprecipe <span class="sc">%&gt;%</span> </span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(Age)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>knn_wflow <span class="ot">&lt;-</span></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(knnmodel) <span class="sc">%&gt;%</span> </span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(knnrecipe)</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>knn_fit <span class="ot">&lt;-</span> knn_wflow <span class="sc">%&gt;%</span> <span class="fu">fit</span>(<span class="at">data =</span> modeltrain)</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>knnpreds_results <span class="ot">&lt;-</span> knn_fit <span class="sc">%&gt;%</span> <span class="fu">extract_fit_parsnip</span>()</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>knnpreds_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>parsnip model object
 
 
+Call:
+kknn::train.kknn(formula = ..y ~ ., data = data, ks = min_rows(5,     data, 5))
+
+Type of response variable: nominal
+Minimal misclassification: 0.3283582
+Best kernel: optimal
+Best k: 5</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>testpreds <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(testpreds,</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(knn_fit, modeltest),</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(knn_fit, modeltest, <span class="at">type =</span> <span class="st">'prob'</span>)</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(testpreds) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'top3'</span>, <span class="st">'logpreds'</span>, <span class="st">'log0'</span>, <span class="st">'log1'</span>, <span class="st">'knnpreds'</span>, <span class="st">'knn0'</span>, <span class="st">'knn1'</span>)</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>modelperf <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(modelperf,</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">bind_rows</span>(</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">accuracy</span>(testpreds, top3, knnpreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">precision</span>(testpreds, top3, knnpreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">recall</span>(testpreds, top3, knnpreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">specificity</span>(testpreds, top3, knnpreds, <span class="at">event_level =</span> <span class="st">'second'</span>)</span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>                         )[,<span class="dv">3</span>]</span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>                       )</span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(modelperf) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'metric'</span>, <span class="st">'estimator'</span>, <span class="st">'log_reg'</span>, <span class="st">'KNN'</span>)</span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>modelperf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 4
+  metric      estimator log_reg   KNN
+  &lt;chr&gt;       &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+1 accuracy    binary      0.696 0.661
+2 precision   binary      0.364 0.308
+3 recall      binary      0.286 0.286
+4 specificity binary      0.833 0.786</code></pre>
+</div>
+</div>
+<p><br>
+The KNN results look remarkably similar to the logistic regression results, though it does in fact perform worse. The recall is, somewhat surprisingly, the same at 0.2857143, but all other model performance metrics are worse. From this we can tell that the model guessed the same proportion of contestants who actually did make the top 3, but incorrectly guessed contestants made the top 3 more times. The KNN model doesn’t give us information about model predictor importance or significance, so there’s less to say about this one, but ultimately it offers nothing to us that the logistic regression does not.</p>
+<p>For the last model I want to try something with variable selection/ reduction. I think the abundance of location variables could have a negative impact on my results, so reducing variables should help that.</p>
+</section>
+<section id="mars" class="level4">
+<h4 class="anchored" data-anchor-id="mars">MARS</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>marsmodel <span class="ot">&lt;-</span> <span class="fu">mars</span>(<span class="at">prod_degree =</span> <span class="dv">2</span>, <span class="at">prune_method =</span> <span class="st">"backward"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">'earth'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">'classification'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">translate</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>mars_wflow <span class="ot">&lt;-</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(marsmodel) <span class="sc">%&gt;%</span> </span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(simprecipe)  <span class="co">#MARS does not require much preprocessing beyond what was already done</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>mars_fit <span class="ot">&lt;-</span> mars_wflow <span class="sc">%&gt;%</span> <span class="fu">fit</span>(<span class="at">data =</span> modeltrain)</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>marspreds_results <span class="ot">&lt;-</span> mars_fit <span class="sc">%&gt;%</span> <span class="fu">extract_fit_parsnip</span>()</span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>marspreds_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>parsnip model object
+
+GLM (family binomial, link logit):
+ nulldev  df       dev  df   devratio     AIC iters converged
+ 151.794 133   146.219 132     0.0367   150.2    14         1
+
+Earth selected 2 of 45 terms, and 2 of 43 predictors
+Termination condition: GRSq -10 at 45 terms
+Importance: HomeState_North.Carolina, gender_Male, Age-unused, ...
+Number of terms at each degree of interaction: 1 0 1
+Earth GCV 0.1907479    RSS 24.24242    GRSq 0.007605869    RSq 0.04456328</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>mars_fit <span class="sc">%&gt;%</span> <span class="fu">vip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tidytuesday-exercise_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>testpreds <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(testpreds,</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(mars_fit, modeltest),</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(mars_fit, modeltest, <span class="at">type =</span> <span class="st">'prob'</span>)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(testpreds) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'top3'</span>, <span class="st">'logpreds'</span>, <span class="st">'log0'</span>, <span class="st">'log1'</span>, <span class="st">'knnpreds'</span>, <span class="st">'knn0'</span>, <span class="st">'knn1'</span>, <span class="st">'marspreds'</span>, <span class="st">'mars0'</span>, <span class="st">'mars1'</span>)</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>modelperf <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(modelperf,</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">bind_rows</span>(</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">accuracy</span>(testpreds, top3, marspreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">precision</span>(testpreds, top3, marspreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">recall</span>(testpreds, top3, marspreds, <span class="at">event_level =</span> <span class="st">'second'</span>),</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">specificity</span>(testpreds, top3, marspreds, <span class="at">event_level =</span> <span class="st">'second'</span>)</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>                         )[,<span class="dv">3</span>]</span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>                       )</span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(modelperf) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'metric'</span>, <span class="st">'estimator'</span>, <span class="st">'log_reg'</span>, <span class="st">'KNN'</span>, <span class="st">'MARS'</span>)</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>modelperf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 5
+  metric      estimator log_reg   KNN   MARS
+  &lt;chr&gt;       &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+1 accuracy    binary      0.696 0.661 0.75  
+2 precision   binary      0.364 0.308 0.5   
+3 recall      binary      0.286 0.286 0.0714
+4 specificity binary      0.833 0.786 0.976 </code></pre>
+</div>
+</div>
+<p><br>
+The MARS models have the advantage of variable selection, and my thinking is if it removed several of the unimportant location variables but kept some that were informative we have seen a difference in model performance. However, the variable selection only chose 2 variables, HomeState_North.Carolina (dummy variable) and gender_Male (dummy variable, but for a binary variable, so essentially just gender). The Gender variable being selected is unsurprising considering what we saw earlier with the logistic regression, but the North Carolina variable is somewhat surprising. Though, looking back at the location bar chart from earlier the frequency that finalists that come from North Carolina place high is noteworthy, so it does make some sense.<br>
+Our predictive power is ultimately worse than both of the previous models. Specificity, precision, and accuracy all went up, but at a huge cost to recall, which had a value of 0.0714286. This is because the Model only predicted 2 contestants to be in the top 3, one of which it admittedly got correct, but this was too conservative to be of any actual value. Given the variables selected, it likely assumes any finalist who is Male from North Carolina will make the top 3.<br>
+Ultimately the last two models were too complex to appropriately predict simple data like this one, which is likely why the simpler model performed the best. Still, the predictors were just not enough to make a worthwhile prediction, So including other predictors for future work could be useful. Possibly something like finalists who sing songs by certain artists, or even just lumping more of the location responses together so there is not so much noise caused by the large number of dummy variables. That said, while there may be some underlying relationship between age and gender, it is subtle enough to argue that the American Idol contestants likely stand a fair chance, regardless of their background.</p>
+
+
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

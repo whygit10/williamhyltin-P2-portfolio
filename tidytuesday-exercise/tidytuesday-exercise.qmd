@@ -2,4 +2,350 @@
 title: "Tidy Tuesday Exercise"
 ---
 
-Placeholder file for the future Tidy Tuesday exercise.
+For this exercise we are tasked with performing an analysis on the latest [Tidy Tuesday](https://github.com/rfordatascience/tidytuesday) dataset. Given that the exercise is intended to give us an opportunity for an end to end analysis, I want to use this as an opportunity to show my thought process when it comes to an analysis. Likely this means there will be plenty of rambling and word vomit, but my intended focus is the work flow itself and less the end result. I will save the polished up manuscripts and final results for larger projects.  
+This week's dataset is one on American Idol data, scraped from Wikipedia tables as I understand. I don't have a lot of familiarity with the show since I've never been a fan myself, so one way or another this will absolutely be a learning experience.  
+We start by loading the dataset.
+```{r setup, warning=FALSE}
+#loading packages
+pacman::p_load(tidyverse, here, tidytuesdayR, tidymodels, parsnip, skimr, viridis, caret, recipes, workflows, yardstick, kknn, earth, vip)
+
+#code below is taken from the tidy tuesday github
+tuesdata <- tidytuesdayR::tt_load('2024-07-23')
+
+auditions <- tuesdata$auditions
+eliminations <- tuesdata$eliminations
+finalists <- tuesdata$finalists
+ratings <- tuesdata$ratings
+seasons <- tuesdata$seasons
+songs <- tuesdata$songs
+```
+\
+Then looking at the raw data.
+```{r}
+#lots of tables, so I'm using lapply to save myself some typing
+lapply(list(auditions, eliminations, finalists, ratings, seasons, songs), head)
+```
+```{r}
+lapply(list(auditions, eliminations, finalists, ratings, seasons, songs), skim)
+```
+
+\
+A lot of missing values across several different variables and tables. I want to start with the contestants, namely the finalists. The finalists dataset has Hometown and Birthplace, with many missing hometown but few missing birthplace. Looking at the tables on Wikipedia, it appears that many of the people with missing Hometowns in the dataset have their birthplace listed as their hometown. I check around 10 of them across different seasons, which may not be a lot but for the sake of this exercise is enough to make me comfortable to impute the hometown with their birthplace when it's missing. I think Hometown is a more meaningful variable, so if I do something like determining the impact of location on advancement I think hometown is the more reasonable method. Last thing to note, season 18 is included in the eliminations and song datasets but not the finalists dataset.
+```{r}
+# logical if_else statement to impute birthplace only when hometown is missing
+finalists2 <- finalists %>% mutate(
+  Hometown = if_else(is.na(Hometown), Birthplace, Hometown)
+)
+```
+\
+There are only a few with missing hometowns now, and I'm tempted to impute these manually by referencing the material found in Wikipedia since it looks like it's mostly available there. I will resist the urge for now, moving on to joining some of the dataframes for a master finalist dataset.  
+Eliminations has the placement of the contestants, as well as their gender, so I want to bring those in. There's much more in eliminations, but the format of the show is inconsistent across seasons so there would be a lot of cleaning to do to make the data more analysis-friendly. For example, I'd be interested in getting the episode someone is eliminated to then bring in things like ratings and viewership of said episodes, but there aren't common keys across ratings, songs, or eliminations datasets, which would have the data necessary to accomplish that. For now, I think the placement can serve as the contestants success variable and ratings and viewership will have to be a little more disjointed.
+```{r}
+# left join to keep everything from finalists
+finalists3 <- finalists2 %>% 
+  left_join(eliminations,
+            join_by(Contestant == contestant, Season == season)
+            ) %>% 
+  select(c(names(finalists2), place, gender))
+finalists3 %>% head()
+finalists3 %>% filter(is.na(place))
+```
+\
+A few contestants have some foreign characters characters in their names, and the way the tables were read looks like there is some discrepancy that caused different values across our datasets. I will have to correct this first and then join the datasets.  
+```{r}
+# Some simple string replacements and conditionals to fix names prior to join
+finalists4 <- finalists2 %>% mutate(
+  Contestant = str_replace_all(Contestant, '\x8e', 'é'),
+  Contestant = if_else(Contestant == 'Chikezie Eze', 'Chikezie', Contestant),
+  Nickname = trimws(str_extract(Contestant, '".*?"'), whitespace = '"'),
+  Contestant = if_else(!is.na(Nickname) & Nickname != 'Sway', paste(Nickname, word(Contestant, -1)), Contestant),
+  Contestant = if_else(Contestant == 'Bobby Bennett, Jr.', 'Bobby Bennett', Contestant)
+) %>% 
+  select(-Nickname) %>% 
+  left_join(eliminations,
+            join_by(Contestant == contestant, Season == season)
+            ) %>% 
+  select(c(names(finalists2), place, gender)) # only want two variables from eliminations
+
+finalists4 %>% head() # checking new variables look right
+finalists4 %>% filter(is.na(place)) # checking for any nulls from poor join
+```
+\
+Note that I had to manually override Bobby Bennett's name because there are other contestants with a "Jr." suffix that were able to join across the tables.  
+From the eliminations dataset we brought over the place that each finalist ultimately ended the show in. However, in several instances multiple contestants are eliminated at a time, so they're placements are listed in the table as a range, e.g. 9-10. We can arguably say these contestants tied for the higher place in the range, so in the 9-10 example two contestants tied for 9th place. So let's recode those placements accordingly.
+
+```{r}
+# regex to extract only the first number from range placements
+finalists5 <- finalists4 %>% mutate(
+  numplace = as.numeric(str_extract(place,'(^[0-9]+)'))
+  )
+```
+
+Now the new variable is coded to have only one value and is numeric. At this point it's a little unclear how useful that will really be, since it's an integer scale and for many regression problems wouldn't be appropriate, but we can come back to that later.
+
+```{r}
+# splits up Hometown into city and state, since State will be a smaller category
+finalists6 <- finalists5 %>% mutate(
+  HomeState = trimws(str_split_fixed(Hometown, ',',2)[,2]),
+  HomeCity = str_split_fixed(Hometown, ',',2)[,1]
+)
+
+finalists6$HomeState %>% unique()
+finalists6 %>% filter(HomeState == 'Karen Carpenter')
+```
+\
+There's a stray 'Karen Carpenter' in one value for the new State variable, and looking at the value it appears to be an issue with the original Birthplace variable. We can take care of this easily by recoding the variable manually.
+```{r}
+# Manually correcting incorrect location variables for the one contestant
+finalists7 <- finalists6 %>% mutate(
+  Birthplace = if_else(Birthplace == 'e Dion, Karen Carpenter', NA, Birthplace),
+  Hometown = if_else(Hometown == 'e Dion, Karen Carpenter', NA, Hometown),
+  HomeState = if_else(HomeState == 'Karen Carpenter', NA, HomeState),
+  HomeCity = if_else(HomeCity == 'e Dion', NA, HomeCity)
+)
+finalists7 %>% filter(HomeState == 'Karen Carpenter'|
+                        Birthplace == 'e Dion, Karen Carpenter'| 
+                        Hometown == 'e Dion, Karen Carpenter' | 
+                        HomeState == 'Karen Carpenter')
+```
+
+Another variable that might be interesting is age. We have birthdate, however since we have multiple seasons across different years it's not valuable to us like it is. To remedy this, I will use the auditions dataset to extract a contestant's age at the time of audition start.
+
+```{r}
+# simplifies Audition data to just get needed dates
+AuditionStarts <- auditions %>% 
+  group_by(season) %>% 
+  summarize(
+    AudStart = min(audition_date_start)
+  )
+#joins simplified audition data, converts Birthday to date, 
+#imputes missing contest birthday, and calculates Age at start of auditions
+finalists8 <- finalists7 %>% 
+  left_join(AuditionStarts, join_by(Season == season)) %>% 
+  mutate(Birthday = dmy(Birthday),
+         Birthday = if_else(Contestant == 'Jax', ymd('1996-05-05'), Birthday),
+         Age = floor(as.numeric(interval(Birthday, AudStart), 'years'))
+         )
+finalists8 %>% filter(is.na(Birthday))
+```
+\
+This gets us the Age for every finalist at the start of their respective season's audition start. I could have tried to extract the location of their audition from the Description column and then used that to match up the audition date instead, but this is quicker, quite frankly. One person did not have a value in the Birthday column, and in this case I imputed it manually because the information is available from Wikipedia quickly, and missing numeric values are a much greater problem for model building than missing categorical variables are.
+
+That should have the values fixed and additional variables added. Now let's do a little exploring.
+```{r}
+# group bar chart of placement counts by gender
+finalists8 %>% 
+  filter(numplace <= 10) %>% 
+  group_by(numplace, gender) %>% 
+  summarize(cnt = n()) %>%
+  ggplot() +
+  geom_bar(aes(fill = gender, y = cnt, x=numplace), position = 'dodge', stat = 'identity') +
+  theme_minimal() +
+  scale_fill_manual(values = c('#D81561', '#1379BF')) +
+  labs(title = 'Distribution of Top 10 Male and Female Finalists', x = 'Placement', y = 'Count', fill = 'Gender') +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(color = 'gray')) +
+  scale_y_continuous(expand = c(0,0),limits = c(0, NA)) +
+  scale_x_continuous(breaks = seq(1,10))
+```
+
+```{r}
+# creates a simplified dataset of Homestate contestant frequencies
+HSOrder <- finalists8 %>%
+  filter(numplace <= 10) %>%
+  group_by(HomeState) %>% 
+  summarize(
+    ordercnt = n()
+  )
+#joins above HomeState data so that it can used to reorder HomeState variable by
+#total frequency. Horizontal bar chart of location color-coded by placement
+finalists8 %>% 
+  filter(numplace <= 10) %>%
+  group_by(numplace, HomeState) %>% 
+  summarize(cnt = n()) %>%
+  left_join(HSOrder, join_by(HomeState==HomeState)) %>% 
+  ggplot() +
+  geom_bar(aes(fill = numplace, y = fct_reorder(HomeState, ordercnt), x=cnt), position = 'stack', stat = 'identity') +
+  theme_minimal() +
+  scale_fill_viridis(option = 'mako') +
+  labs(title = 'Count and Placement of Finalists by State', x = 'Count', y = 'Home State', fill = 'Placement') +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(color = 'gray'), axis.text.y = element_text(size = 7)) +
+  scale_x_continuous(expand = c(0,0),limits = c(0, NA))
+```
+
+```{r}
+# Scatterplot of Age by Placement, stratified by Gender. Jitter used for readability
+finalists8 %>% 
+  ggplot() +
+  geom_jitter(aes(color = gender, y = numplace, x=Age)) +
+  theme_minimal() +
+  labs(title = 'Placement vs Age, Stratified by Gender', x = 'Age', y = 'Placement', color = 'Gender') +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(color = 'gray'))
+```
+\
+The exploratory charts were made to see if there was a relationship between a contestant's Home State, their gender, or Age and their placement in the competition. Truthfully looking at these charts nothing is really jumping out at me, which surprises me at least a little, especially for Age and Gender. Despite seeing no obvious relationship, I think this is a good opportunity to see if a model would tell us any differently. On paper it looks like the competition is fairly non-discriminatory, at least with the people that make it a far as a finalist, so if a more rigorous statistical method like a model says otherwise then that would be interesting. If not, well that's good for American Idol right?.  
+First we'll need to prepare the data a bit:
+```{r}
+# Preparing data for only needed predictors
+modeldata <- finalists8 %>% 
+  mutate(
+    top3 = as.factor(if_else(numplace <= 3, 1,0))
+      ) %>% 
+  select(gender, HomeState, Age, top3)
+```
+\
+We now have only the variables of interest for our models in the dataset. It's only four predictors, but given that the number of observations is also relatively small, a simple model is probably for the best.
+Let's start with a logistic regression model:
+
+#### Logistic Regression
+```{r}
+logreg <- logistic_reg() %>% 
+  set_engine('glm')
+
+set.seed(42)
+trainpart <- createDataPartition(modeldata$top3, p=.7)[[1]]
+modeltrain <- modeldata[trainpart,]
+modeltest <- modeldata[-trainpart,]
+
+simprecipe <- recipe(top3 ~ ., data = modeltrain) %>% 
+  step_interact(terms = ~ Age:gender) %>%
+  step_novel(HomeState) %>% 
+  step_unknown(HomeState) %>% 
+  step_dummy(HomeState,gender)
+```
+
+```{r}
+logrecipe <- simprecipe %>% 
+  step_normalize(Age)
+  
+
+set.seed(42)
+
+logreg_wflow <- workflow() %>% 
+  add_model(logreg) %>% 
+  add_recipe(logrecipe)
+
+logreg_fit <- logreg_wflow %>% fit(data = modeltrain)
+logpreds_results <- logreg_fit %>% extract_fit_parsnip() %>% tidy()
+logpreds_results
+```
+
+```{r}
+testpreds <- bind_cols(
+  top3 = modeltest$top3,
+  predict(logreg_fit, modeltest),
+  predict(logreg_fit, modeltest, type = 'prob')
+)
+
+names(testpreds) <- c('top3', 'logpreds', 'log0', 'log1')
+
+modelperf <- bind_rows(
+  acc_log = accuracy(testpreds, top3, logpreds, event_level = 'second'),
+  prec_log = precision(testpreds, top3, logpreds, event_level = 'second'),
+  rec_log = recall(testpreds, top3, logpreds, event_level = 'second'),
+  spec_log = specificity(testpreds, top3, logpreds, event_level = 'second')
+)
+names(modelperf) <- c('metric', 'estimator', 'log_reg')
+modelperf
+
+```
+\
+The logistic regression model is pretty terrible, but there are a few things to glean here. First off, originally I had run this model without the interaction between Age and Gender, and the p-values for all predictors were well above any rejection threshold. However, including the interaction drastically changes the results for Age and Gender. Age alone is still not significant against any alpha level with a p-value of `r logpreds_results[which(logpreds_results$term == 'Age'), 'p.value'][[1]]`, but against an alpha level of 0.1 the interaction of Age and Gender is significant with a p-value of `r logpreds_results[which(logpreds_results$term == 'Age_x_genderMale'), 'p.value'][[1]]`. Similarly Gender alone is significant at an alpha level of 0.1 with a p-value of `r logpreds_results[which(logpreds_results$term == 'gender_Male'), 'p.value'][[1]]`. one could interpret these results as two finalists of the same age but different gender have different odds of making it to the top 3. An alpha level of 0.1 may not be the most stringent or typical value, but this example was not intended to be the most rigorous so I feel comfortable taking the liberty. The location variables are all basically worthless, though surprisingly taking them out causes the model to guess every contestant as Negative, that they would not make it to the top 3. That likely means some feature selection would be necessary if there was any intention of taking this model any further.  
+Prediction performance for the model is what truly reveals the quality. The accuracy at first glance seems not totally terrible; with a value of `r modelperf[which(modelperf$metric == 'accuracy'), 'log_reg'][[1]]`, it's better than flipping a coin at least. However, it is important to remember this is whether a finalist makes it to the top 3 or not. One season has more than 20 finalists, so in that instance there is a 98.5% chance of randomly choosing someone who is not in the top 3. In fact, among the finalists in our dataset only `r nrow(filter(finalists8, numplace <= 3))/nrow(finalists8) * 100`% of contestants make the top 3, meaning if the model were to guess that nobody made the top 3 it would have an accuracy value of `r (1-nrow(filter(finalists8, numplace <= 3))/nrow(finalists8)) * 100`%. This is also made clear by the poor Recall value of `r modelperf[which(modelperf$metric == 'recall'), 'log_reg'][[1]]`, essentially saying that out of the actual positive examples, few are predicted correctly.  
+Despite the poor predictive performance this model suggests a relationship may exist, and warrants some more exploration. I will try a few more models to see if I get different results.  
+The scatterplot from earlier makes me think there may be some possibility of groupings based on the predictor variables. If you look at the bottom part of the scatter plot, where the top three would be, there seem to be a possible difference in Age and Gender amongst who was in the top 3. this leads me to think a KNN model might be possible, though this will largely depend on if those differences amongst the top 3 are also apparent for those not in the top 3.
+
+#### K-Nearest Neighbors
+```{r}
+knnmodel <- nearest_neighbor() %>% 
+  set_engine('kknn') %>% 
+  set_mode('classification')
+```
+
+```{r}
+knnrecipe <- simprecipe %>% 
+  step_normalize(Age)
+  
+
+set.seed(42)
+
+knn_wflow <-
+  workflow() %>% 
+  add_model(knnmodel) %>% 
+  add_recipe(knnrecipe)
+
+knn_fit <- knn_wflow %>% fit(data = modeltrain)
+knnpreds_results <- knn_fit %>% extract_fit_parsnip()
+knnpreds_results
+```
+
+```{r}
+testpreds <- bind_cols(testpreds,
+  predict(knn_fit, modeltest),
+  predict(knn_fit, modeltest, type = 'prob')
+)
+
+names(testpreds) <- c('top3', 'logpreds', 'log0', 'log1', 'knnpreds', 'knn0', 'knn1')
+
+modelperf <- bind_cols(modelperf,
+                       bind_rows(
+                         accuracy(testpreds, top3, knnpreds, event_level = 'second'),
+                         precision(testpreds, top3, knnpreds, event_level = 'second'),
+                         recall(testpreds, top3, knnpreds, event_level = 'second'),
+                         specificity(testpreds, top3, knnpreds, event_level = 'second')
+                         )[,3]
+                       )
+names(modelperf) <- c('metric', 'estimator', 'log_reg', 'KNN')
+modelperf
+```
+\
+The KNN results look remarkably similar to the logistic regression results, though it does in fact perform worse. The recall is, somewhat surprisingly, the same at `r modelperf[which(modelperf$metric == 'recall'), 'KNN'][[1]]`, but all other model performance metrics are worse. From this we can tell that the model guessed the same proportion of contestants who actually did make the top 3, but incorrectly guessed contestants made the top 3 more times. The KNN model doesn't give us information about model predictor importance or significance, so there's less to say about this one, but ultimately it offers nothing to us that the logistic regression does not.
+
+For the last model I want to try something with variable selection/ reduction. I think the abundance of location variables could have a negative impact on my results, so reducing variables should help that.  
+
+#### MARS
+```{r}
+marsmodel <- mars(prod_degree = 2, prune_method = "backward") %>% 
+  set_engine('earth') %>% 
+  set_mode('classification') %>% 
+  translate()
+```
+
+```{r}
+set.seed(42)
+
+mars_wflow <-
+  workflow() %>% 
+  add_model(marsmodel) %>% 
+  add_recipe(simprecipe)  #MARS does not require much preprocessing beyond what was already done
+
+mars_fit <- mars_wflow %>% fit(data = modeltrain)
+marspreds_results <- mars_fit %>% extract_fit_parsnip()
+marspreds_results
+mars_fit %>% vip()
+```
+
+```{r}
+testpreds <- bind_cols(testpreds,
+  predict(mars_fit, modeltest),
+  predict(mars_fit, modeltest, type = 'prob')
+)
+
+names(testpreds) <- c('top3', 'logpreds', 'log0', 'log1', 'knnpreds', 'knn0', 'knn1', 'marspreds', 'mars0', 'mars1')
+
+modelperf <- bind_cols(modelperf,
+                       bind_rows(
+                         accuracy(testpreds, top3, marspreds, event_level = 'second'),
+                         precision(testpreds, top3, marspreds, event_level = 'second'),
+                         recall(testpreds, top3, marspreds, event_level = 'second'),
+                         specificity(testpreds, top3, marspreds, event_level = 'second')
+                         )[,3]
+                       )
+names(modelperf) <- c('metric', 'estimator', 'log_reg', 'KNN', 'MARS')
+modelperf
+```
+\
+The MARS models have the advantage of variable selection, and my thinking is if it removed several of the unimportant location variables but kept some that were informative we have seen a difference in model performance. However, the variable selection only chose 2 variables, HomeState_North.Carolina (dummy variable) and gender_Male (dummy variable, but for a binary variable, so essentially just gender). The Gender variable being selected is unsurprising considering what we saw earlier with the logistic regression, but the North Carolina variable is somewhat surprising. Though, looking back at the location bar chart from earlier the frequency that finalists that come from North Carolina place high is noteworthy, so it does make some sense.  
+Our predictive power is ultimately worse than both of the previous models. Specificity, precision, and accuracy all went up, but at a huge cost to recall, which had a value of `r modelperf[which(modelperf$metric == 'recall'), 'MARS'][[1]]`. This is because the Model only predicted 2 contestants to be in the top 3, one of which it admittedly got correct, but this was too conservative to be of any actual value. Given the variables selected, it likely assumes any finalist who is Male from North Carolina will make the top 3.  
+Ultimately the last two models were too complex to appropriately predict simple data like this one, which is likely why the simpler model performed the best. Still, the predictors were just not enough to make a worthwhile prediction, So including other predictors for future work could be useful. Possibly something like finalists who sing songs by certain artists, or even just lumping more of the location responses together so there is not so much noise caused by the large number of dummy variables. That said, while there may be some underlying relationship between age and gender, it is subtle enough to argue that the American Idol contestants likely stand a fair chance, regardless of their background.
