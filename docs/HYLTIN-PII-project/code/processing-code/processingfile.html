@@ -1,0 +1,3273 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.554">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="William Hyltin">
+<meta name="dcterms.date" content="2024-08-05">
+
+<title>William Hyltin Data Analysis Portfolio - Cleaning up Crime</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<script src="../../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">William Hyltin Data Analysis Portfolio</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../aboutme.html"> 
+<span class="menu-text">About Me</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-projects" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Projects</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-projects">    
+        <li>
+    <a class="dropdown-item" href="../../../starter-analysis-exercise/products/report/starter-analysis-report.html">
+ <span class="dropdown-text">Starter Analysis Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../coding-exercise/coding-exercise.html">
+ <span class="dropdown-text">R Coding Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../presentation-exercise/presentation-exercise.html">
+ <span class="dropdown-text">Presentation Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../tidytuesday-exercise/tidytuesday-exercise.html">
+ <span class="dropdown-text">Tidy Tuesday Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../data-exercise/data-exercise.html">
+ <span class="dropdown-text">Complex Data Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../cdcdata-exercise/cdcdata-exercise.html">
+ <span class="dropdown-text">CDC Data Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../HYLTIN-PII-project/products/manuscript/Manuscript.html">
+ <span class="dropdown-text">Crime in Austin, TX</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/whygit10/williamhyltin-P2-portfolio"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Cleaning up Crime</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>William Hyltin </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 5, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="processing-script" class="level1">
+<h1>Processing script</h1>
+<section id="setup" class="level3">
+<h3 class="anchored" data-anchor-id="setup">Setup</h3>
+<p>Load needed packages.<br>
+<em>Pacman::p_load</em> makes sure they are installed before auto-loading.<br>
+<em>tidyverse</em> for general data processing/cleaning.<br>
+<em>lubridate</em> for cleaning/re-coding date fields.<br>
+<em>skimr</em> for nice visualization of data.<br>
+<em>here</em> to set paths.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages(pacman)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,lubridate,skimr,here, stringr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="data-loading" class="level1">
+<h1>Data loading</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># path to data</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># note the use of the here() package and not absolute paths</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"raw-data"</span>,<span class="st">"raw-crime-060424.csv"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>rawdata <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(data_location, <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="check-data" class="level1">
+<h1>Check data</h1>
+<p>First we can look at the codebook, which can be found <a href="https://data.austintexas.gov/Public-Safety/Crime-Reports/fdj4-gpfu/about_data">here</a>. I will recreate it here as it currently exists, and I will have a copy of the pdf attachment codebook included in the repo as well. However, please note if this analysis is ever repeated that careful consideration should be taken to ensure field have not been changed, removed, or redefined.</p>
+<table class="table">
+<colgroup>
+<col style="width: 41%">
+<col style="width: 58%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Incident Number</td>
+<td>Incident report number</td>
+</tr>
+<tr class="even">
+<td>Highest Offense Description</td>
+<td>Description</td>
+</tr>
+<tr class="odd">
+<td>Highest Offense Code</td>
+<td>Code</td>
+</tr>
+<tr class="even">
+<td>Family Violence</td>
+<td>Incident involves family violence? Y = yes, N = no</td>
+</tr>
+<tr class="odd">
+<td>Occurred Date Time</td>
+<td>Date and time (combined) incident occurred</td>
+</tr>
+<tr class="even">
+<td>Occurred Date</td>
+<td>Date the incident occurred</td>
+</tr>
+<tr class="odd">
+<td>Occurred Time</td>
+<td>Time the incident occurred</td>
+</tr>
+<tr class="even">
+<td>Report Date Time</td>
+<td>Date and time (combined) incident was reported</td>
+</tr>
+<tr class="odd">
+<td>Report Date</td>
+<td>Date the incident was reported</td>
+</tr>
+<tr class="even">
+<td>Report Time</td>
+<td>Time the incident was reported</td>
+</tr>
+<tr class="odd">
+<td>Location Type</td>
+<td>General description of the premise where the incident occurred</td>
+</tr>
+<tr class="even">
+<td>Address</td>
+<td>Incident location</td>
+</tr>
+<tr class="odd">
+<td>Zip code</td>
+<td>Zip code where incident occurred</td>
+</tr>
+<tr class="even">
+<td>Council District</td>
+<td>Austin city council district where the incident occurred</td>
+</tr>
+<tr class="odd">
+<td>APD Sector</td>
+<td>APD sector where incident occurred</td>
+</tr>
+<tr class="even">
+<td>APD District</td>
+<td>APD district where incident occurred</td>
+</tr>
+<tr class="odd">
+<td>PRA</td>
+<td>APD police reporting area where incident occurred</td>
+</tr>
+<tr class="even">
+<td>Census Tract</td>
+<td>Census tract where incident occurred</td>
+</tr>
+<tr class="odd">
+<td>Clearance Status</td>
+<td>How/whether crime was solved (see Clearance lookup)</td>
+</tr>
+<tr class="even">
+<td>Clearance Date</td>
+<td>Date crime was solved</td>
+</tr>
+<tr class="odd">
+<td>UCR Category</td>
+<td>Code for the most serious crimes identified by the FBI as part of its Uniform Crime Reporting program</td>
+</tr>
+<tr class="even">
+<td>Category Description</td>
+<td>Description for the most serious crimes identified by the FBI as part of its Uniform Crime Reporting program</td>
+</tr>
+<tr class="odd">
+<td>X-coordinate</td>
+<td>X-coordinate where the incident occurred</td>
+</tr>
+<tr class="even">
+<td>Y-coordinate</td>
+<td>Y-coordinate where incident occurred</td>
+</tr>
+<tr class="odd">
+<td>Latitude</td>
+<td>Latitude where incident occurred</td>
+</tr>
+<tr class="even">
+<td>Longitude</td>
+<td>Longitude where the incident occurred</td>
+</tr>
+<tr class="odd">
+<td>Location</td>
+<td>3rd party generated spatial column</td>
+</tr>
+</tbody>
+</table>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Clearance lookup</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>C</td>
+<td>Cleared by Arrest</td>
+</tr>
+<tr class="even">
+<td>O</td>
+<td>Cleared by Exception</td>
+</tr>
+<tr class="odd">
+<td>N</td>
+<td>Not cleared</td>
+</tr>
+</tbody>
+</table>
+<p>Several ways of looking at the data</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 2,470,867
+Columns: 27
+$ Incident.Number             &lt;dbl&gt; 2006471156, 20045044338, 2006960811, 20138…
+$ Highest.Offense.Description &lt;chr&gt; "FAMILY DISTURBANCE", "TAMPERING WITH ID N…
+$ Highest.Offense.Code        &lt;int&gt; 3400, 2719, 3400, 1707, 204, 200, 200, 170…
+$ Family.Violence             &lt;chr&gt; "N", "N", "N", "Y", "Y", "Y", "N", "N", "N…
+$ Occurred.Date.Time          &lt;chr&gt; "02/16/2006 02:25:00 PM", "09/14/2004 03:3…
+$ Occurred.Date               &lt;chr&gt; "02/16/2006", "09/14/2004", "04/06/2006", …
+$ Occurred.Time               &lt;int&gt; 1425, 1532, 1029, 1, 105, 1915, 1200, 2228…
+$ Report.Date.Time            &lt;chr&gt; "02/16/2006 02:25:00 PM", "09/14/2004 03:3…
+$ Report.Date                 &lt;chr&gt; "02/16/2006", "09/14/2004", "04/06/2006", …
+$ Report.Time                 &lt;int&gt; 1425, 1532, 1029, 1656, 105, 1706, 1200, 2…
+$ Location.Type               &lt;chr&gt; "RESIDENCE / HOME", "", "RESIDENCE / HOME"…
+$ Address                     &lt;chr&gt; "7000 DECKER 1422", "3301 CR 100", "5005 W…
+$ Zip.Code                    &lt;int&gt; NA, NA, NA, 78705, 78744, 78748, 78757, 78…
+$ Council.District            &lt;int&gt; NA, NA, NA, 9, 2, 5, 7, 9, NA, NA, NA, NA,…
+$ APD.Sector                  &lt;chr&gt; "", "", "", "BA", "FR", "FR", "ID", "DA", …
+$ APD.District                &lt;chr&gt; "", "", "", "1", "8", "2", "7", "2", "6", …
+$ PRA                         &lt;chr&gt; "", "", "", "348", "530", "542", "247", "4…
+$ Census.Tract                &lt;dbl&gt; NA, NA, NA, 4.00, 24.41, 24.38, 405.00, 23…
+$ Clearance.Status            &lt;chr&gt; "", "N", "N", "C", "C", "C", "O", "", "N",…
+$ Clearance.Date              &lt;chr&gt; "", "09/14/2004", "05/01/2006", "04/11/201…
+$ UCR.Category                &lt;chr&gt; "", "", "", "11C", "11A", "11A", "11A", "1…
+$ Category.Description        &lt;chr&gt; "", "", "", "Rape", "Rape", "Rape", "Rape"…
+$ X.coordinate                &lt;int&gt; NA, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0…
+$ Y.coordinate                &lt;int&gt; NA, NA, NA, 0, 0, 0, 0, 0, NA, NA, 0, 0, 0…
+$ Latitude                    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+$ Longitude                   &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+$ Location                    &lt;chr&gt; "", "", "", "", "", "", "", "", "", "", ""…</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Incident.Number     Highest.Offense.Description Highest.Offense.Code
+ Min.   :2.004e+04   Length:2470867              Min.   : 100        
+ 1st Qu.:2.005e+10   Class :character            1st Qu.: 601        
+ Median :2.011e+10   Mode  :character            Median :1199        
+ Mean   :6.022e+10                               Mean   :1691        
+ 3rd Qu.:2.017e+10                               3rd Qu.:2716        
+ Max.   :2.024e+12                               Max.   :8905        
+                                                                     
+ Family.Violence    Occurred.Date.Time Occurred.Date      Occurred.Time 
+ Length:2470867     Length:2470867     Length:2470867     Min.   :   0  
+ Class :character   Class :character   Class :character   1st Qu.: 805  
+ Mode  :character   Mode  :character   Mode  :character   Median :1425  
+                                                          Mean   :1319  
+                                                          3rd Qu.:1930  
+                                                          Max.   :2400  
+                                                          NA's   :60    
+ Report.Date.Time   Report.Date         Report.Time   Location.Type     
+ Length:2470867     Length:2470867     Min.   :   0   Length:2470867    
+ Class :character   Class :character   1st Qu.: 915   Class :character  
+ Mode  :character   Mode  :character   Median :1406   Mode  :character  
+                                       Mean   :1329                     
+                                       3rd Qu.:1849                     
+                                       Max.   :2359                     
+                                       NA's   :1                        
+   Address             Zip.Code     Council.District  APD.Sector       
+ Length:2470867     Min.   :    0   Min.   : 1.00    Length:2470867    
+ Class :character   1st Qu.:78717   1st Qu.: 3.00    Class :character  
+ Mode  :character   Median :78741   Median : 4.00    Mode  :character  
+                    Mean   :78731   Mean   : 4.96                      
+                    3rd Qu.:78752   3rd Qu.: 7.00                      
+                    Max.   :78759   Max.   :10.00                      
+                    NA's   :9180    NA's   :39936                      
+ APD.District           PRA             Census.Tract      Clearance.Status  
+ Length:2470867     Length:2470867     Min.   :     1.0   Length:2470867    
+ Class :character   Class :character   1st Qu.:    15.0   Class :character  
+ Mode  :character   Mode  :character   Median :    23.2   Mode  :character  
+                                       Mean   :   253.5                     
+                                       3rd Qu.:   338.0                     
+                                       Max.   :960100.0                     
+                                       NA's   :17241                        
+ Clearance.Date     UCR.Category       Category.Description  X.coordinate      
+ Length:2470867     Length:2470867     Length:2470867       Min.   :-32621852  
+ Class :character   Class :character   Class :character     1st Qu.:  3108417  
+ Mode  :character   Mode  :character   Mode  :character     Median :  3117292  
+                                                            Mean   :  3075713  
+                                                            3rd Qu.:  3126591  
+                                                            Max.   : 38895240  
+                                                            NA's   :5089       
+  Y.coordinate         Latitude       Longitude        Location        
+ Min.   :       0   Min.   : 0.00   Min.   :-99.16   Length:2470867    
+ 1st Qu.:10057416   1st Qu.:30.23   1st Qu.:-97.76   Class :character  
+ Median :10073004   Median :30.28   Median :-97.73   Mode  :character  
+ Mean   : 9944021   Mean   :30.29   Mean   :-97.73                     
+ 3rd Qu.:10100561   3rd Qu.:30.35   3rd Qu.:-97.70                     
+ Max.   :41158776   Max.   :42.17   Max.   :  0.00                     
+ NA's   :5082       NA's   :38139   NA's   :38139                      </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Incident.Number    Highest.Offense.Description Highest.Offense.Code
+1      2006471156             FAMILY DISTURBANCE                 3400
+2     20045044338       TAMPERING WITH ID NUMBER                 2719
+3      2006960811             FAMILY DISTURBANCE                 3400
+4      2013851154 SEXUAL ASSAULT OF CHILD/OBJECT                 1707
+5     20161800084                RAPE OF A CHILD                  204
+6      2010701921                           RAPE                  200
+  Family.Violence     Occurred.Date.Time Occurred.Date Occurred.Time
+1               N 02/16/2006 02:25:00 PM    02/16/2006          1425
+2               N 09/14/2004 03:32:00 PM    09/14/2004          1532
+3               N 04/06/2006 10:29:00 AM    04/06/2006          1029
+4               Y 01/01/2009 12:01:00 AM    01/01/2009             1
+5               Y 06/28/2016 01:05:00 AM    06/28/2016           105
+6               Y 03/04/2010 07:15:00 PM    03/04/2010          1915
+        Report.Date.Time Report.Date Report.Time    Location.Type
+1 02/16/2006 02:25:00 PM  02/16/2006        1425 RESIDENCE / HOME
+2 09/14/2004 03:32:00 PM  09/14/2004        1532                 
+3 04/06/2006 10:29:00 AM  04/06/2006        1029 RESIDENCE / HOME
+4 03/26/2013 04:56:00 PM  03/26/2013        1656 RESIDENCE / HOME
+5 06/28/2016 01:05:00 AM  06/28/2016         105 RESIDENCE / HOME
+6 03/11/2010 05:06:00 PM  03/11/2010        1706 RESIDENCE / HOME
+                   Address Zip.Code Council.District APD.Sector APD.District
+1         7000 DECKER 1422       NA               NA                        
+2              3301 CR 100       NA               NA                        
+3        5005 W FRANCES PL       NA               NA                        
+4      900 BLOCK E 32ND ST    78705                9         BA            1
+5 6900 BLOCK BRANCHWOOD DR    78744                2         FR            8
+6   400 BLOCK ANGEL OAK ST    78748                5         FR            2
+  PRA Census.Tract Clearance.Status Clearance.Date UCR.Category
+1               NA                                             
+2               NA                N     09/14/2004             
+3               NA                N     05/01/2006             
+4 348         4.00                C     04/11/2013          11C
+5 530        24.41                C     07/01/2016          11A
+6 542        24.38                C     03/18/2010          11A
+  Category.Description X.coordinate Y.coordinate Latitude Longitude Location
+1                                NA           NA       NA        NA         
+2                                NA           NA       NA        NA         
+3                                NA           NA       NA        NA         
+4                 Rape            0            0       NA        NA         
+5                 Rape            0            0       NA        NA         
+6                 Rape            0            0       NA        NA         </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">rawdata</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">2470867</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">16</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">11</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 31%">
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 9%">
+<col style="width: 10%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Highest.Offense.Description</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">436</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Family.Violence</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Date.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">137</td>
+<td style="text-align: right;">1744152</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Occurred.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">7823</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Report.Date.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2176754</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">7825</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Location.Type</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">18945</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Address</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">252579</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">APD.Sector</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3359</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">APD.District</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4055</td>
+<td style="text-align: right;">71</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PRA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5635</td>
+<td style="text-align: right;">762</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Clearance.Status</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">618707</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Clearance.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">350297</td>
+<td style="text-align: right;">7815</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">UCR.Category</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1557816</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Category.Description</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">1557816</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Location</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">38139</td>
+<td style="text-align: right;">221001</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 6%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 8%">
+<col style="width: 4%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Incident.Number</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">6.022168e+10</td>
+<td style="text-align: right;">2.893008e+11</td>
+<td style="text-align: right;">20035.00</td>
+<td style="text-align: right;">2.005330e+10</td>
+<td style="text-align: right;">2.010505e+10</td>
+<td style="text-align: right;">2.017187e+10</td>
+<td style="text-align: right;">2.024242e+12</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Highest.Offense.Code</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.691360e+03</td>
+<td style="text-align: right;">1.219150e+03</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">6.010000e+02</td>
+<td style="text-align: right;">1.199000e+03</td>
+<td style="text-align: right;">2.716000e+03</td>
+<td style="text-align: right;">8.905000e+03</td>
+<td style="text-align: left;">▇▅▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Time</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.319010e+03</td>
+<td style="text-align: right;">7.176300e+02</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">8.050000e+02</td>
+<td style="text-align: right;">1.425000e+03</td>
+<td style="text-align: right;">1.930000e+03</td>
+<td style="text-align: right;">2.400000e+03</td>
+<td style="text-align: left;">▆▃▆▇▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Time</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.329500e+03</td>
+<td style="text-align: right;">6.544400e+02</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">9.150000e+02</td>
+<td style="text-align: right;">1.406000e+03</td>
+<td style="text-align: right;">1.849000e+03</td>
+<td style="text-align: right;">2.359000e+03</td>
+<td style="text-align: left;">▅▅▇▇▇</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Zip.Code</td>
+<td style="text-align: right;">9180</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">7.873064e+04</td>
+<td style="text-align: right;">3.763500e+02</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">7.871700e+04</td>
+<td style="text-align: right;">7.874100e+04</td>
+<td style="text-align: right;">7.875200e+04</td>
+<td style="text-align: right;">7.875900e+04</td>
+<td style="text-align: left;">▁▁▁▁▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Council.District</td>
+<td style="text-align: right;">39936</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">4.960000e+00</td>
+<td style="text-align: right;">2.840000e+00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.000000e+00</td>
+<td style="text-align: right;">4.000000e+00</td>
+<td style="text-align: right;">7.000000e+00</td>
+<td style="text-align: right;">1.000000e+01</td>
+<td style="text-align: left;">▅▇▃▃▅</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Census.Tract</td>
+<td style="text-align: right;">17241</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">2.535000e+02</td>
+<td style="text-align: right;">4.194780e+03</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.500000e+01</td>
+<td style="text-align: right;">2.324000e+01</td>
+<td style="text-align: right;">3.380000e+02</td>
+<td style="text-align: right;">9.601000e+05</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">X.coordinate</td>
+<td style="text-align: right;">5089</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.075713e+06</td>
+<td style="text-align: right;">3.978973e+05</td>
+<td style="text-align: right;">-32621852.00</td>
+<td style="text-align: right;">3.108417e+06</td>
+<td style="text-align: right;">3.117292e+06</td>
+<td style="text-align: right;">3.126591e+06</td>
+<td style="text-align: right;">3.889524e+07</td>
+<td style="text-align: left;">▁▁▇▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Y.coordinate</td>
+<td style="text-align: right;">5082</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">9.944021e+06</td>
+<td style="text-align: right;">1.160975e+06</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.005742e+07</td>
+<td style="text-align: right;">1.007300e+07</td>
+<td style="text-align: right;">1.010056e+07</td>
+<td style="text-align: right;">4.115878e+07</td>
+<td style="text-align: left;">▁▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Latitude</td>
+<td style="text-align: right;">38139</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">3.029000e+01</td>
+<td style="text-align: right;">2.000000e-01</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">3.023000e+01</td>
+<td style="text-align: right;">3.028000e+01</td>
+<td style="text-align: right;">3.035000e+01</td>
+<td style="text-align: right;">4.217000e+01</td>
+<td style="text-align: left;">▁▁▁▇▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Longitude</td>
+<td style="text-align: right;">38139</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">-9.773000e+01</td>
+<td style="text-align: right;">4.700000e-01</td>
+<td style="text-align: right;">-99.16</td>
+<td style="text-align: right;">-9.776000e+01</td>
+<td style="text-align: right;">-9.773000e+01</td>
+<td style="text-align: right;">-9.770000e+01</td>
+<td style="text-align: right;">0.000000e+00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(rawdata<span class="sc">$</span>Location.Type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "RESIDENCE / HOME"                               
+ [2] ""                                               
+ [3] "OTHER / UNKNOWN"                                
+ [4] "FIELD / WOODS"                                  
+ [5] "HOTEL / MOTEL / ETC."                           
+ [6] "GOVERNMENT / PUBLIC BUILDING"                   
+ [7] "DEPARTMENT / DISCOUNT STORE"                    
+ [8] "COMMERCIAL / OFFICE BUILDING"                   
+ [9] "GROCERY / SUPERMARKET"                          
+[10] "PARK / PLAYGROUND"                              
+[11] "CONVENIENCE STORE"                              
+[12] "LIQUOR STORE"                                   
+[13] "CHURCH / SYNAGOGUE / TEMPLE / MOSQUE"           
+[14] "CYBERSPACE"                                     
+[15] "CAMP / CAMPGROUND"                              
+[16] "CONSTRUCTION SITE"                              
+[17] "DAYCARE FACILITY"                               
+[18] "COMMUNITY CENTER"                               
+[19] "SCHOOL - ELEMENTARY / SECONDARY"                
+[20] "AUTO DEALERSHIP NEW / USED"                     
+[21] "SHOPPING MALL"                                  
+[22] "BANK / SAVINGS &amp; LOAN"                          
+[23] "SCHOOL - COLLEGE / UNIVERSITY"                  
+[24] "AMUSEMENT PARK"                                 
+[25] "HWY / ROAD / ALLEY/ STREET/ SIDEWALK"           
+[26] "ABANDONED/CONDEMNED STRUCTURE"                  
+[27] "INDUSTRIAL SITE"                                
+[28] "PARKING /DROP LOT/ GARAGE"                      
+[29] "AIR / BUS / TRAIN TERMINAL"                     
+[30] "DRUG STORE / DOCTOR'S OFFICE / HOSPITAL"        
+[31] "JAIL / PRISON/PENITENTIARY/CORRECTIONS FACILITY"
+[32] "RESTAURANT"                                     
+[33] "BAR / NIGHTCLUB"                                
+[34] "LAKE / WATERWAY/BEACH"                          
+[35] "SPECIALTY  STORE"                               
+[36] "SERVICE/ GAS STATION"                           
+[37] "SCHOOL/COLLEGE"                                 
+[38] "SHELTER-MISSION / HOMELESS"                     
+[39] "ATM SEPARATE FROM BANK"                         
+[40] "GAMBLING FACILITY / CASINO / RACE TRACK"        
+[41] "RENTAL STORAGE FACILITY"                        
+[42] "MILITARY INSTALLATION"                          
+[43] "ARENA / STADIUM / FAIRGROUNDS / COLISEUM"       
+[44] "FARM FACILITY"                                  
+[45] "TRIBAL LANDS"                                   
+[46] "REST AREA"                                      
+[47] "DOCK / WHARF / FREIGHT / MODAL TERMINAL"        </code></pre>
+</div>
+</div>
+</section>
+<section id="cleaning" class="level1">
+<h1>Cleaning</h1>
+<p>By inspecting the data as done above, we find some problems that need addressing:<br>
+</p>
+<section id="dates-and-times" class="level3">
+<h3 class="anchored" data-anchor-id="dates-and-times">Dates and Times</h3>
+<p>We have seven time related fields in this dataset: Occurred.Date.Time, Occurred.Date, Occurred.Time, Report.Date.Time, Report.Date, Report.Time, and Clearance.Date.<br>
+- The Date-Time and Date variables were read in as strings, and the two Time variables were read in as numeric. So that we can treat these variables as actual representations of a point in time, we will need to re-code them into date, time, and date-time values.<br>
+- Many of the variables have missing or empty values where they shouldn’t. For example, there are some instances where the Occurred.Date.Time variable is empty, but the Occurred.Date and Occurred.Time values are not.<br>
+- Finally, there are some instances where the time value does not make any sense. Values like 60 or 70 are impossible to occur and somewhat vague, so special consideration should be taken to account for these as well.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> rawdata <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">test =</span> (<span class="fu">str_sub</span>(<span class="fu">as.character</span>(Occurred.Time), <span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>          <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>()),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Occurred.Date =</span> <span class="fu">mdy</span>(Occurred.Date)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  ,<span class="at">Report.Date =</span> <span class="fu">mdy</span>(Report.Date)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  ,<span class="at">Occurred.Date.Time =</span> <span class="fu">parse_date_time</span>(Occurred.Date.Time,<span class="st">'%m/%d/%Y %I:%M:%S %p'</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  ,<span class="at">Report.Date.Time =</span> <span class="fu">parse_date_time</span>(Report.Date.Time,<span class="st">'%m/%d/%Y %I:%M:%S %p'</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  ,<span class="at">Clearance.Date =</span> <span class="fu">mdy</span>(Clearance.Date)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Occurred.Time =</span> <span class="fu">if_else</span>(</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(Occurred.Time) <span class="sc">|</span> test <span class="sc">&gt;=</span> <span class="dv">60</span>, </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        Occurred.Date <span class="sc">==</span> Report.Date,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">if_else</span>(</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>          <span class="fu">is.na</span>(Report.Time), </span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>          <span class="dv">2359</span>, Report.Time</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>          ), <span class="dv">2359</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        ), <span class="fu">if_else</span>(</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>          Occurred.Time <span class="sc">==</span> <span class="dv">2400</span>, </span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>          <span class="dv">2359</span>, Occurred.Time</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>          ) </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">as.character</span>()</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">Occurred.Time =</span> <span class="fu">paste0</span>(<span class="st">'000'</span>,Occurred.Time,<span class="st">'00'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_sub</span>(.,<span class="sc">-</span><span class="dv">6</span>,<span class="sc">-</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">parse_time</span>(<span class="st">'%H%M%S'</span>)</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>      ,<span class="at">Occurred.Date.Time =</span> <span class="fu">if_else</span>(</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">is.na</span>(Occurred.Date.Time), </span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(Occurred.Date, Occurred.Time)), Occurred.Date.Time</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>      ,<span class="at">Report.Time =</span> <span class="fu">if_else</span>(</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>        <span class="fu">is.na</span>(Report.Time), <span class="dv">2359</span>, Report.Time) <span class="sc">%&gt;%</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.character</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste0</span>(<span class="st">'000'</span>,.,<span class="st">'00'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_sub</span>(.,<span class="sc">-</span><span class="dv">6</span>,<span class="sc">-</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">parse_time</span>(<span class="st">'%H%M%S'</span>)</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>      ,<span class="at">Report.Date.Time =</span> <span class="fu">if_else</span>(</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>        <span class="fu">is.na</span>(Report.Date.Time),</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(Report.Date, Report.Time)), Report.Date.Time</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>test)</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(d1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">d1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">2470867</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">11</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Date</td>
+<td style="text-align: left;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">difftime</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 31%">
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 9%">
+<col style="width: 10%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Highest.Offense.Description</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">436</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Family.Violence</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Location.Type</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">18945</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Address</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">252579</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">APD.Sector</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3359</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">APD.District</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4055</td>
+<td style="text-align: right;">71</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PRA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5635</td>
+<td style="text-align: right;">762</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Clearance.Status</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">618707</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">UCR.Category</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1557816</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Category.Description</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">1557816</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Location</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">38139</td>
+<td style="text-align: right;">221001</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: Date</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">2003-01-01</td>
+<td style="text-align: left;">2024-06-01</td>
+<td style="text-align: left;">2012-05-29</td>
+<td style="text-align: right;">7823</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">2002-11-29</td>
+<td style="text-align: left;">2024-06-02</td>
+<td style="text-align: left;">2012-06-07</td>
+<td style="text-align: right;">7825</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Clearance.Date</td>
+<td style="text-align: right;">350297</td>
+<td style="text-align: right;">0.86</td>
+<td style="text-align: left;">2003-01-01</td>
+<td style="text-align: left;">2024-06-02</td>
+<td style="text-align: left;">2012-10-18</td>
+<td style="text-align: right;">7814</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: difftime</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">0 secs</td>
+<td style="text-align: left;">86340 secs</td>
+<td style="text-align: left;">14:25:00</td>
+<td style="text-align: right;">1440</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">0 secs</td>
+<td style="text-align: left;">86340 secs</td>
+<td style="text-align: left;">14:06:00</td>
+<td style="text-align: right;">1440</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 6%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 8%">
+<col style="width: 4%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Incident.Number</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">6.022168e+10</td>
+<td style="text-align: right;">2.893008e+11</td>
+<td style="text-align: right;">20035.00</td>
+<td style="text-align: right;">2.005330e+10</td>
+<td style="text-align: right;">2.010505e+10</td>
+<td style="text-align: right;">2.017187e+10</td>
+<td style="text-align: right;">2.024242e+12</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Highest.Offense.Code</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.691360e+03</td>
+<td style="text-align: right;">1.219150e+03</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">6.010000e+02</td>
+<td style="text-align: right;">1.199000e+03</td>
+<td style="text-align: right;">2.716000e+03</td>
+<td style="text-align: right;">8.905000e+03</td>
+<td style="text-align: left;">▇▅▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Zip.Code</td>
+<td style="text-align: right;">9180</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">7.873064e+04</td>
+<td style="text-align: right;">3.763500e+02</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">7.871700e+04</td>
+<td style="text-align: right;">7.874100e+04</td>
+<td style="text-align: right;">7.875200e+04</td>
+<td style="text-align: right;">7.875900e+04</td>
+<td style="text-align: left;">▁▁▁▁▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Council.District</td>
+<td style="text-align: right;">39936</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">4.960000e+00</td>
+<td style="text-align: right;">2.840000e+00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.000000e+00</td>
+<td style="text-align: right;">4.000000e+00</td>
+<td style="text-align: right;">7.000000e+00</td>
+<td style="text-align: right;">1.000000e+01</td>
+<td style="text-align: left;">▅▇▃▃▅</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Census.Tract</td>
+<td style="text-align: right;">17241</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">2.535000e+02</td>
+<td style="text-align: right;">4.194780e+03</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.500000e+01</td>
+<td style="text-align: right;">2.324000e+01</td>
+<td style="text-align: right;">3.380000e+02</td>
+<td style="text-align: right;">9.601000e+05</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">X.coordinate</td>
+<td style="text-align: right;">5089</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.075713e+06</td>
+<td style="text-align: right;">3.978973e+05</td>
+<td style="text-align: right;">-32621852.00</td>
+<td style="text-align: right;">3.108417e+06</td>
+<td style="text-align: right;">3.117292e+06</td>
+<td style="text-align: right;">3.126591e+06</td>
+<td style="text-align: right;">3.889524e+07</td>
+<td style="text-align: left;">▁▁▇▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Y.coordinate</td>
+<td style="text-align: right;">5082</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">9.944021e+06</td>
+<td style="text-align: right;">1.160975e+06</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.005742e+07</td>
+<td style="text-align: right;">1.007300e+07</td>
+<td style="text-align: right;">1.010056e+07</td>
+<td style="text-align: right;">4.115878e+07</td>
+<td style="text-align: left;">▁▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Latitude</td>
+<td style="text-align: right;">38139</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">3.029000e+01</td>
+<td style="text-align: right;">2.000000e-01</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">3.023000e+01</td>
+<td style="text-align: right;">3.028000e+01</td>
+<td style="text-align: right;">3.035000e+01</td>
+<td style="text-align: right;">4.217000e+01</td>
+<td style="text-align: left;">▁▁▁▇▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Longitude</td>
+<td style="text-align: right;">38139</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">-9.773000e+01</td>
+<td style="text-align: right;">4.700000e-01</td>
+<td style="text-align: right;">-99.16</td>
+<td style="text-align: right;">-9.776000e+01</td>
+<td style="text-align: right;">-9.773000e+01</td>
+<td style="text-align: right;">-9.770000e+01</td>
+<td style="text-align: right;">0.000000e+00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: POSIXct</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 8%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Date.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2003-01-01 00:00:00</td>
+<td style="text-align: left;">2024-06-01 23:46:00</td>
+<td style="text-align: left;">2012-05-29 19:00:00</td>
+<td style="text-align: right;">1744224</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Date.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2002-11-29 05:30:00</td>
+<td style="text-align: left;">2024-06-02 01:20:00</td>
+<td style="text-align: left;">2012-06-07 09:47:00</td>
+<td style="text-align: right;">2176754</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>This should address all of the time-based variables. I may come back and update some of this, solely because I made some more analytic decisions regarding the empty values for Occurred.Date.Time. The logic is that if the time is missing, the occurrence would have had to have happened at least before the report time, though if the report occurred on a different day we assume the occurrence would have to be at least by midnight the same day. The number of empties, once the three “Occurred” variables are coalesced where appropriate, are relatively low, so I don’t expect this to have significant effect on any results either way.</p>
+</section>
+<section id="categorical-variables" class="level3">
+<h3 class="anchored" data-anchor-id="categorical-variables">Categorical Variables</h3>
+<p>In the initial looks at the dataset a few columns stand out as potential factor variables.<br>
+- Family Violence is a mostly complete field, though a minor oddity to it is the existence of a third factor when the codebook says it should only be two.<br>
+- APD Sector, APD District, and PRA may be the best values to serve as a categorical representation of location, since it has relatively few missing variables. Zip code may also work and be more consumable to the average person, however it does have more missing than the others mentioned. Lastly, X and Y Coordinates, though not naturally categorical, may be able to be used to create categorical groupings considering their completeness.<br>
+- Location Type is another good categorical variable. There are a lot of categories, but with one like this it may be easy to combine some of them. Empty values are climbing, but still less than 1% of the data.<br>
+- Highest Offense code has 396 distinct values, which would be far too many for categorical use, but again may be able to be grouped. - Clearance Status sounds like a very interesting variable to use, however it is one of the variables with the highest number of empties/missing. Furthermore, it’s confounded by Clearance Date, which has fewer (but still a lot of) missing and empty values. This is one that may take some outside research, on what constitutes a “clearance” and what it means in relation to a clearance date. - UCR Category and Description also sound like very interesting variables, but are the worst offenders in terms of missing data. This makes sense from info from the codebook, that it is reserved for designation of the most serious crimes by the FBI. In a way this could even mean the null values are also valuable, because they very well may indicate less serious crimes.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>d2<span class="ot">&lt;-</span> d1 <span class="sc">%&gt;%</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">Family.Violence =</span> <span class="fu">toupper</span>(Family.Violence)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    ,<span class="at">Location.Type =</span> <span class="fu">if_else</span>(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      Location.Type <span class="sc">==</span> <span class="st">''</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">'Unknown'</span>, Location.Type</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Zip.Code) <span class="sc">&amp;</span> <span class="sc">!</span>(Zip.Code <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(X.coordinate) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(Y.coordinate) <span class="sc">&amp;</span> PRA <span class="sc">!=</span> <span class="st">''</span>,Clearance.Status <span class="sc">!=</span> <span class="dv">9</span>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(d2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">d2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">2461621</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">11</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Date</td>
+<td style="text-align: left;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">difftime</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 31%">
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 9%">
+<col style="width: 10%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Highest.Offense.Description</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">436</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Family.Violence</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Location.Type</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Address</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">74</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">246951</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">APD.Sector</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">APD.District</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PRA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">742</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Clearance.Status</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">615856</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">UCR.Category</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1550375</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Category.Description</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">1550375</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Location</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">32335</td>
+<td style="text-align: right;">219842</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: Date</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">2003-01-01</td>
+<td style="text-align: left;">2024-06-01</td>
+<td style="text-align: left;">2012-05-28</td>
+<td style="text-align: right;">7823</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Date</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">2002-11-29</td>
+<td style="text-align: left;">2024-06-02</td>
+<td style="text-align: left;">2012-06-06</td>
+<td style="text-align: right;">7825</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Clearance.Date</td>
+<td style="text-align: right;">348308</td>
+<td style="text-align: right;">0.86</td>
+<td style="text-align: left;">2003-01-01</td>
+<td style="text-align: left;">2024-06-02</td>
+<td style="text-align: left;">2012-10-17</td>
+<td style="text-align: right;">7814</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: difftime</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">0 secs</td>
+<td style="text-align: left;">86340 secs</td>
+<td style="text-align: left;">14:25:00</td>
+<td style="text-align: right;">1440</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">0 secs</td>
+<td style="text-align: left;">86340 secs</td>
+<td style="text-align: left;">14:06:00</td>
+<td style="text-align: right;">1440</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 6%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 6%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 4%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Incident.Number</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">6.031558e+10</td>
+<td style="text-align: right;">2.896224e+11</td>
+<td style="text-align: right;">20035.00</td>
+<td style="text-align: right;">2.005329e+10</td>
+<td style="text-align: right;">2.010505e+10</td>
+<td style="text-align: right;">2.017186e+10</td>
+<td style="text-align: right;">2.024242e+12</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Highest.Offense.Code</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.689080e+03</td>
+<td style="text-align: right;">1.218280e+03</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">6.010000e+02</td>
+<td style="text-align: right;">1.199000e+03</td>
+<td style="text-align: right;">2.716000e+03</td>
+<td style="text-align: right;">8.905000e+03</td>
+<td style="text-align: left;">▇▅▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Zip.Code</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">7.873243e+04</td>
+<td style="text-align: right;">2.510000e+01</td>
+<td style="text-align: right;">76574.00</td>
+<td style="text-align: right;">7.871700e+04</td>
+<td style="text-align: right;">7.874100e+04</td>
+<td style="text-align: right;">7.875200e+04</td>
+<td style="text-align: right;">7.875900e+04</td>
+<td style="text-align: left;">▁▁▁▁▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Council.District</td>
+<td style="text-align: right;">30699</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">4.960000e+00</td>
+<td style="text-align: right;">2.840000e+00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.000000e+00</td>
+<td style="text-align: right;">4.000000e+00</td>
+<td style="text-align: right;">7.000000e+00</td>
+<td style="text-align: right;">1.000000e+01</td>
+<td style="text-align: left;">▅▇▃▃▅</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Census.Tract</td>
+<td style="text-align: right;">8822</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.453700e+02</td>
+<td style="text-align: right;">3.363970e+03</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.500000e+01</td>
+<td style="text-align: right;">2.324000e+01</td>
+<td style="text-align: right;">3.380000e+02</td>
+<td style="text-align: right;">9.508000e+05</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">X.coordinate</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.075787e+06</td>
+<td style="text-align: right;">3.551571e+05</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">3.108421e+06</td>
+<td style="text-align: right;">3.117292e+06</td>
+<td style="text-align: right;">3.126595e+06</td>
+<td style="text-align: right;">3.231806e+06</td>
+<td style="text-align: left;">▁▁▁▁▇</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Y.coordinate</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">9.946761e+06</td>
+<td style="text-align: right;">1.147895e+06</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.005743e+07</td>
+<td style="text-align: right;">1.007300e+07</td>
+<td style="text-align: right;">1.010056e+07</td>
+<td style="text-align: right;">1.021550e+07</td>
+<td style="text-align: left;">▁▁▁▁▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Latitude</td>
+<td style="text-align: right;">32335</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">3.029000e+01</td>
+<td style="text-align: right;">8.000000e-02</td>
+<td style="text-align: right;">30.01</td>
+<td style="text-align: right;">3.023000e+01</td>
+<td style="text-align: right;">3.028000e+01</td>
+<td style="text-align: right;">3.035000e+01</td>
+<td style="text-align: right;">3.067000e+01</td>
+<td style="text-align: left;">▁▇▇▂▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Longitude</td>
+<td style="text-align: right;">32335</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">-9.773000e+01</td>
+<td style="text-align: right;">5.000000e-02</td>
+<td style="text-align: right;">-98.18</td>
+<td style="text-align: right;">-9.776000e+01</td>
+<td style="text-align: right;">-9.773000e+01</td>
+<td style="text-align: right;">-9.770000e+01</td>
+<td style="text-align: right;">-9.737000e+01</td>
+<td style="text-align: left;">▁▁▇▂▁</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: POSIXct</strong></p>
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 8%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Occurred.Date.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2003-01-01 00:00:00</td>
+<td style="text-align: left;">2024-06-01 23:46:00</td>
+<td style="text-align: left;">2012-05-28 23:09:00</td>
+<td style="text-align: right;">1738386</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Report.Date.Time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2002-11-29 05:30:00</td>
+<td style="text-align: left;">2024-06-02 01:20:00</td>
+<td style="text-align: left;">2012-06-06 11:15:00</td>
+<td style="text-align: right;">2169726</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">count</span>(d2)<span class="sc">/</span><span class="fu">count</span>(d1))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         n
+1 0.996258</code></pre>
+</div>
+</div>
+<p>The categorical variables look good for now. Up until this point little exploration has been done and there may be other re-codes or filters that would be worth including for other variables. Likely once I am further into the analysis I will return to this step to make more adjustments, but the changes I’ve made should provide a good starting point.</p>
+</section>
+<section id="string-variables" class="level3">
+<h3 class="anchored" data-anchor-id="string-variables">String Variables</h3>
+<p>There are a few string variables that may be worth using for the analysis. Some of these I covered in the categorical variables, but for those that have excessive number of unique values a categorical value may not be practical.<br>
+- Highest Offense Description has hundreds of unique values, but since this is essentially a description of the crimes committed there are likely commonalities that could lead to groupings. I can imagine more variables stemming from this as well, such as if the description contains certain keywords I could create indicator variables based on that presence. - Address is essentially another location based variable, and considering the number of them that have been cleaned for that purpose already it seems unlikely to need more. Still, the specificity offered by the address may be insightful, especially if i start drilling down into particular areas that suffer from the most crime. Potentially Doing something like a regular expression to extract a street name would be useful.<br>
+- Location Type does not have an unreasonable number of unique values, so this variable may better fit as a categorical only. Still the max length of some of the values lends itself to be that there may be more worth extracting from the field.</p>
+<p>Parsing out these string variables will likely be more of a cognitive load than the others would, so I will hold off on doing so for now. Once I am further along with the EDA I will have a better idea of what I want to be looking for within these variables anyway.</p>
+</section>
+<section id="and-were-back" class="level3">
+<h3 class="anchored" data-anchor-id="and-were-back">And We’re Back</h3>
+<p>The string variable <code>Highest.Offense.Description</code> was just too rich to pass up. It would make for an excellent categorical variable however there are over 400 categories going off the variable as-is. <code>UCR.Category</code> is a very nice alternative with only a few levels to the category, but the field is mostly empty due to the nature of the variable. It represent an FBI Categorization known as Uniform Crime Reporting (UCR) for the most serious of crimes. So I decided to take the matter into my own hands. Number one, I would create a new field that categorizes the crime myself, based on categorizations in the UCR program. If the observation had values in the UCR field, I would take that one, if it did not, I impute a category based on the description in the Highest Offense Description field. This was mostly done through brute force, with string detection and research in two places, the <a href="https://ucr.fbi.gov/crime-in-the-u.s/2019/crime-in-the-u.s.-2019/topic-pages/offense-definitions">FBI UCR archive</a> (2019 was not the only year that had information on the categorizations but it was the most in a quick reference format), and the <a href="https://statutes.capitol.texas.gov/">Texas Capitol Statutes website</a>. I feel the need to address this up front, I am absolutely not a criminologist, these categorizations are solely for the sake of making my analysis easier. I think of this as grouping the crime descriptions from the perspective of a layman, me, because ultimately the average person observing crime statistics will roughly as little knowledge about them as I do. An expert could and would do a much better job than I did, but that wasn’t readily available so I worked with what I had. Famous last words of an analyst.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(d2<span class="sc">$</span>Category.Description) <span class="sc">%&gt;%</span> <span class="fu">as.data.frame</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   .
+1               Rape
+2                   
+3           Burglary
+4              Theft
+5 Aggravated Assault
+6            Robbery
+7         Auto Theft
+8             Murder</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(d2[<span class="fu">c</span>(<span class="st">'Category.Description'</span>,<span class="st">'Highest.Offense.Description'</span>)]) <span class="sc">%&gt;%</span> <span class="fu">as.data.frame</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Category.Description                      Highest.Offense.Description
+1                       Rape                   SEXUAL ASSAULT OF CHILD/OBJECT
+2                       Rape                                  RAPE OF A CHILD
+3                       Rape                                             RAPE
+5                       Rape                         SEXUAL ASSAULT W/ OBJECT
+7                                              ASSAULT  CONTACT-SEXUAL NATURE
+8                                                                  HARASSMENT
+10                                              DEPENDENT AND NEGLECTED CHILD
+12                                                          INDECENT EXPOSURE
+13                                             INDECENCY WITH A CHILD/CONTACT
+17                  Burglary                      BURG OF RES - SEXUAL NATURE
+21                                                        ASSAULT WITH INJURY
+22                                             FAILURE TO REG AS SEX OFFENDER
+25                      Rape                                         AGG RAPE
+27                                                    STATUTORY RAPE OF CHILD
+28                     Theft                                THEFT FROM PERSON
+30                  Burglary                            BURGLARY OF RESIDENCE
+33                      Rape                   AGG SEXUAL ASSAULT CHILD/OBJEC
+42                                              INDECENCY WITH CHILD/EXPOSURE
+47                     Theft                                            THEFT
+51                                                            INJURY TO CHILD
+54                      Rape                              AGG RAPE OF A CHILD
+62                     Theft                                 THEFT OF BICYCLE
+65                                                         ASSAULT BY CONTACT
+80                                                                RETALIATION
+86                      Rape                       AGG FORCED SODOMY OF CHILD
+95                                             DISCLOSE/PROMO INTIMATE VISUAL
+98                                                          HARASSMENT ONLINE
+103                                            ASSAULT W/INJURY-FAM/DATE VIOL
+105                                                 INVASIVE VISUAL RECORDING
+127                     Rape                                    FORCED SODOMY
+144                                                         CRIMINAL TRESPASS
+159                                                     FALSE ALARM OR REPORT
+162                                                        TERRORISTIC THREAT
+163                                                        FAMILY DISTURBANCE
+191                                                          ENTICING A CHILD
+192                                                            IDENTITY THEFT
+203                                                             FRAUD - OTHER
+220                     Rape                      AGG SEXUAL ASSAULT W OBJECT
+257                                                      ONLINE IMPERSONATION
+277                                                        DATING DISTURBANCE
+291                                                INJURY DISABLED INDIVIDUAL
+300       Aggravated Assault                    AGG ASSAULT FAM/DATE VIOLENCE
+325                                               CUSTODY ARREST TRAFFIC WARR
+371                                                       DISTURBANCE - OTHER
+410                     Rape                                AGG FORCED SODOMY
+411                                                       FAILURE TO IDENTIFY
+448                                             ASSAULT BY CONTACT FAM/DATING
+466                     Rape                       EXPIRED-ATT SEXUAL ASSAULT
+468                                                         CRIMINAL MISCHIEF
+491       Aggravated Assault                                      AGG ASSAULT
+495                                                              PROSTITUTION
+512                                                                KIDNAPPING
+524                     Rape                          CONT SEX ABUSE OF CHILD
+528                                                                   PROWLER
+529                                            CHILD ENDANGERMENT- ABANDONMEN
+584                                            FELONY ENHANCEMENT/ASSLT W/INJ
+598                                                 SEXTING DEPICTING A MINOR
+610                                                           PUBLIC LEWDNESS
+628                                               VIOL CITY ORDINANCE - OTHER
+639                  Robbery                               ROBBERY BY ASSAULT
+668                                                   POSSESSION OF MARIJUANA
+692                                                   HARBORING RUNAWAY CHILD
+703                                                       WEAPON VIOL - OTHER
+706                                                WARRANT ARREST NON TRAFFIC
+736                  Robbery                                ROBBERY BY THREAT
+844                                            VIOL OF COURT ORDER-NON EPO-PO
+890                                                        UNLAWFUL RESTRAINT
+937                                              POSS CONTROLLED SUB/NARCOTIC
+984                                                 URINATING IN PUBLIC PLACE
+1048                                            INCEST-PROHIBITED SEX CONDUCT
+1073                                               APPLIC TO REVOKE PROBATION
+1080                                           INJURY TO CHILD (CARE/CUSTODY)
+1108                                                         INDECENT ASSAULT
+1168                 Robbery                        AGG ROBBERY/DEADLY WEAPON
+1176                                             POSS/PROMO CHILD PORNOGRAPHY
+1193                                           UNLAWFUL RESTRAINT FAM/DAT VIO
+1222                                                 VIOL OF PROTECTIVE ORDER
+1225                                                             DOC EXPOSURE
+1322                    Rape                   EXPIRED-ATT SEXUAL ASULT CHILD
+1351      Aggravated Assault                      AGG ASLT STRANGLE/SUFFOCATE
+1465                                                                 STALKING
+1548                                             ASSAULT BY THREAT FAM/DATING
+1625                                                        ASSAULT BY THREAT
+1656                 Robbery                           AGG ROBBERY BY ASSAULT
+1665      Aggravated Assault                        SERIOUS INJURY TO A CHILD
+1775                                              FAMILY DISTURBANCE/PARENTAL
+1868                    Rape                      EXPIRED-ATT RAPE OF A CHILD
+1900                                           IMPROPER CONTACT-SEX ASLT VICT
+1945                                                   VIOL STATE LAW - OTHER
+1962                                            BURG OF RES - FAM/DATING ASLT
+1964                                           TERRORISTIC THREAT-FAM/DAT VIO
+1980                Burglary                           BURGLARY NON RESIDENCE
+2002              Auto Theft                                       AUTO THEFT
+2005                    Rape                                 EXPIRED-ATT RAPE
+2051                                             IMPERSONATING PUBLIC SERVANT
+2096                    Rape                           FORCED SODOMY OF CHILD
+2158      Aggravated Assault                                   DEADLY CONDUCT
+2276                                                ASSAULT ON PUBLIC SERVANT
+2373                                                         THEFT OF SERVICE
+2580                                           INTER EMERG PHONECALL FAM/DATE
+2664                  Murder                                           MURDER
+2708                                            FALSE REPORT TO PEACE OFFICER
+2745                   Theft                      BREACH OF COMPUTER SECURITY
+2893                                                POSS OF PROHIBITED WEAPON
+2912                                                PROMOTION OF PROSTITUTION
+3066                                                 INJURY TO ELDERLY PERSON
+3080                                             VIOL PO / SEXUAL ASLT VICTIM
+3096                                           INJ TO ELDERLY   FAM/DATE VIOL
+3206                                                 SLEEPING IN PUBLIC PLACE
+3222                                                  CRED CARD ABUSE - OTHER
+3396                                                  IMMIGRATION HOLD/ARREST
+3455                                                                      DWI
+3459                                                           POSS DANG DRUG
+3491                                               POSS OF DRUG PARAPHERNALIA
+3518                   Theft                             THEFT BY SHOPLIFTING
+3570                                                   EXPIRED-ATT KIDNAPPING
+3590                                              VOCO - ALCOHOL  CONSUMPTION
+3622                                                 UNLAWFUL CARRYING WEAPON
+3652                                                    DOC OFFENSIVE GESTURE
+3699      Aggravated Assault                   AGG ASLT ENHANC STRANGL/SUFFOC
+3710                                           INJ TO DISABLED  FAM/DATE VIOL
+3712                                               RESISTING ARREST OR SEARCH
+3758                                                                  DWI 2ND
+3772                                                         DAMAGE CITY PROP
+3778                                               VOCO SOLICITATION PROHIBIT
+3790                                               DOC WINDOW PEEPING - HOTEL
+3795                                             TAMPERING WITH CONSUMER PROD
+3811                    Rape                   EXPIRED-ATT AGG SEXUAL ASSAULT
+3854                                                           AGG KIDNAPPING
+3883                   Theft                                        ATT THEFT
+3959                                                           EVADING / FOOT
+4001                                           POSS OF ALCOHOL - AGE 17 TO 20
+4017                                                                LITTERING
+4032                                            DWI - DRUG RECOGNITION EXPERT
+4056                                                           PROBATION VIOL
+4108                                              CRIMINAL TRESPASS/TRANSIENT
+4110                                                                 GRAFFITI
+4126                   Theft                                  THEFT FROM AUTO
+4211                                           DOC DISPLAY GUN/DEADLY PUB PLC
+4304                   Theft                              BURGLARY OF VEHICLE
+4356                                           ONLINE SOLICITATION OF A MINOR
+4364                                                             DOC FIGHTING
+4528                                           THEFT OF TELECOMMUNICATION SRV
+4779                                                  CRIMINAL TRESPASS/HOTEL
+4988                                                 POSS OF FIREARM BY FELON
+5223                    Rape                   EXPIREDATT AGG SEX ASSLT CHILD
+5332                                              SEXUAL PERFORMANCE BY CHILD
+5368                                                     DOC ABUSIVE LANGUAGE
+5563      Aggravated Assault                   AGG ASLT W/MOTOR VEH FAM/DAT V
+5615                                                                  PERJURY
+5683      Aggravated Assault                       AGG ASSAULT WITH MOTOR VEH
+6231                                                  CHILD CUSTODY INTERFERE
+6655                                                              PAROLE VIOL
+6719                   Theft                    BURGLARY OF VEH-NO SUSPECT/FU
+6768                                                  COMPELLING PROSTITUTION
+7190                                                      VIOL OF PARK CURFEW
+7358                   Theft                                       MAIL THEFT
+7917                Burglary                        ATT BURGLARY OF RESIDENCE
+8816                                                          CAMPING IN PARK
+8898                                                POSS CONTROLLED SUB/OTHER
+9195                                           VIOL OF EMERG PROTECTIVE ORDER
+9461                    Rape                   EXPIRED-ATTAGGFORCESODOMYCHILD
+9912                    Rape                        EXPIRED-ATT FORCED SODOMY
+10386                                                      FEDERAL VIOL/OTHER
+10547                                                        DEBIT CARD ABUSE
+11327                  Theft                              THEFT FROM BUILDING
+11435                                                 DEL OF ALCOHOL TO MINOR
+11524                                                     ESCAPE FROM CUSTODY
+11941                                                   CRIMINAL SOLICITATION
+12205                                                   DISRUPTION OF CLASSES
+12219                                                  DUI - AGE 16 AND UNDER
+13051                                          OBSCENE DISPLAY - DISTRIBUTION
+13504                                                  AGG KIDNAPPING FAM VIO
+13841                                          THEFT- APPROPRIATE STOLEN PROP
+15376                                          EXPIRED-INJURY CHILD - ELDERLY
+15909                                           AGG PROMOTION OF PROSTITUTION
+15983                                                     OFFICIAL OPPRESSION
+16260                                                                GAMBLING
+16906                                          DISTRIB HARMFUL MATERIAL MINOR
+17752                                          SEXTING/TRANSMIT SEXUAL PHOTOS
+18640                 Murder                                   CAPITAL MURDER
+19374                                                         FORGERY - OTHER
+19490                                             DEL CONTROLLED SUB/NARCOTIC
+19958                                                                   ARSON
+20521                                                           DEL MARIJUANA
+20606                                              EXPIRED-ATT AGG KIDNAPPING
+21721                                                  HINDERING APPREHENSION
+22160                                                 SMUGGLING ILLEGAL ALIEN
+22325                                          CRASH/FAIL STOP AND RENDER AID
+22491                   Rape                                       AGG SODOMY
+22765                                               VIOL CITY ORDINANCE - DOG
+23056                                           DOC DISCHARGE GUN - PUB PLACE
+23243                                                     DOC ABUSE OR THREAT
+23249                                               EVADING / VEHICLE PURSUIT
+23512                                                      KIDNAPPING FAM VIO
+23561                                                  SOLICITATION - BEGGING
+23583                                              LIQUOR LAW VIOLATION/OTHER
+23627                                             DEL CONTROLLED SUB/SYN NARC
+23679                                                      THEFT BY EXTORTION
+23714                                          CRIMINAL SOLICITATION OF MINOR
+23980                                            DRIVING WHILE INTOX / FELONY
+24012                  Theft                           THEFT OF LICENSE PLATE
+24057                                                               OBSCENITY
+24077                                                POSS SYNTHETIC MARIJUANA
+24408                                              VIOL CITY ORDINANCE - TAXI
+24414                                                     FORGERY AND PASSING
+24417                                                TAMPERING WITH ID NUMBER
+24814                                          ASSAULT OF PREGNANT WM-FAM/DAT
+24865                                            CRIMINAL MISCHIEF-NO SUSPECT
+24868                                                         EVADING VEHICLE
+24928                                          HARASSMENT OF A PUBLIC SERVANT
+24935                                            CRIMINAL TRESPASS/IN VEHICLE
+24936                                                  CIVIL DISTURBANCE/DEMO
+25002                                               ARSON-VIOL CITY ORDINANCE
+25034                                            POSS CONTROLLED SUB/SYN NARC
+25040                  Theft                                 THEFT OF TRAILER
+25076               Burglary    BURGLARY OF SHED/DETACHED GARAGE/STORAGE UNIT
+25331                                                      DUI - AGE 17 TO 20
+25717                                                      CRUELTY TO ANIMALS
+25849                                                ASSAULT ON PEACE OFFICER
+26052                                            VOCO AMPLIFIED MUSIC/VEHICLE
+26066                  Theft                        THEFT CATALYTIC CONVERTER
+26145                                              VIOL CIVIL RIGHTS PRISONER
+26152                                                   DWI - CHILD PASSENGER
+26258                                                   DWI  .15 BAC OR ABOVE
+26337                                                            ABUSE OF 911
+26381                                          TELECOMMUNICATION CRIMES/OTHER
+26412                                            DOC DISCHARGE GUN - PUB ROAD
+26927                                            VIOL CITY ORDINANCE - CURFEW
+27128                                                     DAMAGE CITY VEHICLE
+27312                                           VIOL CITY ORDINANCE - BOOTING
+27423     Aggravated Assault                     DEADLY CONDUCT FAM/DATE VIOL
+27461                                              CRED CARD ABUSE BY FORGERY
+28052                                               RENTAL CAR/FAIL TO RETURN
+28240                                           VIOL CITY ORDINANCE -FIREWORK
+28361                                           VIOL CITY ORDINANCE - WRECKER
+28403                                                  AIRPORT - FEDERAL VIOL
+28481                                             FAIL TO REGISTER- MINOR VIC
+28583                                             EXPLOSIVE ORDNANCE DISPOSAL
+28585                                                        PROTECTIVE ORDER
+28674                                          AIRPORT PLACES WEAPON PROHIBIT
+28824                                            THEFT BY FALSE PRETEXT/BUNCO
+28908                                                         RECKLESS DAMAGE
+29167     Aggravated Assault                   TAKE WEAPON FRM POLICE OFFICER
+29171                  Theft                              THEFT OF AUTO PARTS
+29230                                                 ARSON-CRIMINAL MISCHIEF
+29629                                          FALSE STATEMENT -OBTAIN CREDIT
+29814                                              INTERFERENCE PUBLIC DUTIES
+29925                                          FRAUD FILING FINANCE STATEMENT
+30076                  Theft                                  PURSE SNATCHING
+30136                                                DEL CONTROLLED SUB/OTHER
+30205                                               VIOL OF CAMPING ORDINANCE
+30282                  Theft                                   THEFT OF METAL
+30305                                           FORGERY- CERTIFICATE OF TITLE
+30343                                                 VIOL OF BOND CONDITIONS
+30501                                              CRASH/INTOXICATION ASSAULT
+30508                                                 PURCHASING PROSTITUTION
+30705                                             VIOL CITY ORDINANCE - SOUND
+30759                                                 TAMPERING WITH EVIDENCE
+30799                                                  DOC UNREASONABLE NOISE
+31046                  Theft                        THEFT-NO SUSPECT/FOLLOWUP
+31126                                          TERRORISTIC THREAT-MASS CASLTY
+31266     Aggravated Assault                     AGG ASSAULT ON PEACE OFFICER
+31574                                                          COUNTERFEITING
+31867                  Theft                         THEFT OF HEAVY EQUIPMENT
+32145                                          INTERFERE W PO SERVICE ANIMALS
+32227                  Theft                      BURGLARY OF COIN-OP MACHINE
+32522                                                POSS CRIMINAL INSTRUMENT
+33666                                          INJ/CHILD FV (NO CARE/CUSTODY)
+33676                                            FAIL TO REGISTER - ADULT VIC
+33693                                           EXPLOITATION OF CHILD/ELDERLY
+33902                                          INTERFERING W/EMERG PHONE CALL
+33950                                              IDENTITY THEFT-TAX RETURNS
+33976                                                   THEFT BY EMBEZZLEMENT
+34179                                               DOC CREATING NOXIOUS ODOR
+34224                                          OBTAIN CONTROLLED SUB BY FRAUD
+34564                  Theft                                   POCKET PICKING
+34631                                                        RECKLESS CONDUCT
+34965                                                     UCW LICENSE PREMISE
+35540                                                        MONEY LAUNDERING
+35710                   Rape            AGG SEXUAL ASSAULT CHILD/OBJECT-SUPER
+35864     Aggravated Assault                   INJURY TO ELDERLY PERSON - SBI
+36025                                             AIRPORT - CRIMINAL TRESPASS
+36402                                                      FRAUD-CARD SKIMMER
+37746                                                       FORGERY BY MAKING
+38099                                                        DEL OF DANG DRUG
+38652                                                CRASH/INTOX MANSLAUGHTER
+39024                  Theft                          MISAPPLY FIDUCIARY PROP
+39161                                                      NUISANCE ABATEMENT
+39184                                          ILLUMIN AIRCRAFT INTENSE LIGHT
+40523                                               OBTAIN DANG DRUG BY FRAUD
+41467                                                             BOMB THREAT
+42654                                               BOATING WHILE INTOXICATED
+42680             Auto Theft                                   ATT AUTO THEFT
+42889                                          SECURING EXEC-DOC BY DECEPTION
+43023                                                   FORGERY BY ALTERATION
+43408                                              SIT AND LIE ORDINANCE VIOL
+43627                                             ASSAULT OF A PREGNANT WOMAN
+44409                                                      JUSTIFIED HOMICIDE
+44424                                                           ATTACK BY DOG
+44686                                                    VIOL STAY AWAY ORDER
+45553                                                 DEL SYNTHETIC MARIJUANA
+47850                                             DUMPING REFUSE NEAR HIGHWAY
+47910                                                                 BRIBERY
+48227                                               FORGERY OF IDENTIFICATION
+48685                                                             BANK KITING
+49180     Aggravated Assault                    AGG ASSAULT ON PUBLIC SERVANT
+49548                                          FRAUD DESTRUCTION OF A WRITING
+51266                                           MAKING TOBACCO AVAIL TO MINOR
+51544                                               TAMPERING WITH GOV RECORD
+53269                                                  CRIMES AGAINST ELDERLY
+53304                                                HINDER SECURED CREDITORS
+54181                                          CRED CARD ABUSE - EXPIR-CANCEL
+55456                                                     FALSE REPORT TO CPS
+56265     Aggravated Assault                             ARSON-DEADLY CONDUCT
+56891                                                     MISREP AGE BY MINOR
+56985                                               VIOL TEMP EX PARTE  ORDER
+57576                                                          INHALANT ABUSE
+57670                                                 THEFT BY PUBLIC SERVANT
+57814                                                  EXPIRED-EVADING ARREST
+57839                                          POSS OF ALCOHOL-AGE 16 &amp; UNDER
+58218                                               AMPLIFIED MUSIC / VEHICLE
+58378               Burglary                       ATT BURGLARY NON RESIDENCE
+59205                                           VIOL CITY ORDINANCE - AIRPORT
+59611                                             MANF CONTROLLED SUB - OTHER
+59661                                                   ARSON-RECKLESS DAMAGE
+60847                                           LOCATION RESTRICT KNIFE CLS C
+63226                                               UNLAWFUL CARRY-LIC HOLDER
+64148                                            POSSESSION OF FORGED WRITING
+64331                                           VIOL CITY ORDINANCE - SMOKING
+64399                                                      CRASH/MANSLAUGHTER
+64458                                             TOBACCO VIOL - UNDER AGE 17
+65945                                             ENGAGING IN ORGANIZED CRIME
+67008                                          ILLEGAL LABELLING OF RECORDING
+67041                                                TRADEMARK COUNTERFEITING
+67144                                                             PIGEON DROP
+67719                                          EXPIRED-ATT OBT CONT SUB FRAUD
+70706                                            DESECRATION VENERATED OBJECT
+70923                                             TOBACCO VIOL - UNDER AGE 21
+73666                                                         SEXUAL COERCION
+76276     Aggravated Assault                       EXPIRED-ATT CAPITAL MURDER
+77057                                           VIOL OF OBSTRUCTION ORDINANCE
+77143                                                  DANG DRUG VIOL - OTHER
+77216                                             CONTROLLED SUB VIOL - OTHER
+78918                                            AIRPORT - BREACH OF SECURITY
+79097                                                    BWI-EXPIRED USE 2110
+79676                                                    VIOL GLASS CONTAINER
+79852                                                 DISPOSAL OF SOLID WASTE
+80198                  Theft                          THEFT OF CRYPTOCURRENCY
+85362                                                 FIREARMS ON SCHOOL PROP
+87299                                                         ABUSE OF CORPSE
+87690                                           DELIVERY OF PRESCRIPTION FORM
+87849                                           MANF CONTROLLED SUB- SYN NARC
+88498                                                   TOBACCO VIOL - AGE 17
+88709                                                                 TRUANCY
+89131                                          PRACTICE MEDICINE W/OUT LICENS
+91263                                              ABUSE OF OFFICIAL CAPACITY
+93209                                                 CRASH/CRIM NEG HOMICIDE
+98690                                          TRAFFICKING OF PERSONS FOR SEX
+100368                                                      CONTEMPT OF COURT
+112247                                                 TAMPERING WITH WITNESS
+115039    Aggravated Assault                    AGG ASSAULT BY PUBLIC SERVANT
+116693                                                DOMESTIC VIOLENCE/ALARM
+134059                                         VIOL CITY ORDINANCE -  GAME RM
+138822                                         VIOL CITY ORDINANCE - TITLE 10
+141940                                             ASSAULT - SCHOOL PERSONNEL
+144428                                                   HINDERING PROCEEDING
+145979                                              SALE OR PURCHASE OF CHILD
+147966                                                 ABANDONED REFRIGERATOR
+148738               Robbery                   EXPIRED-ATT ROBBERY BY ASSAULT
+154995                 Theft                               THEFT/TILL TAPPING
+158333                                                           CRASH/MURDER
+165476                                                            AGG PERJURY
+167605                                          FALSE CALLER ID DISPLAY/SPOOF
+168830                                             DISRUPTIVE ACTS AT SCHOOLS
+173594                                                  DRINKING AFTER CURFEW
+185099                                           FAIL DISPLAY HANDGUN LICENSE
+190951                                                                   RIOT
+195046                                            FALSE ID AS A PEACE OFFICER
+204682                                                  UNLAWFUL INTERCEPTION
+212998                                         EXP-VIOL CITY ORDINANCE - TAXI
+215138                                                     GAMBLING PROMOTION
+215956                                         EXPIRED-ATT OB DANG DRUG FRAUD
+216043                                         VIOL STATE MASSAGE REGULATIONS
+216157               Robbery                     EXPIRED-ATT AGG ROBBERY/WEAP
+220163                                                MISUSE OF OFFICIAL INFO
+224363                                            COMMUNICATING GAMBLING INFO
+228331                Murder                                     MANSLAUGHTER
+231475                Murder DRUG/MURDER BY PROVIDING DRUG RESULTING IN DEATH
+237163                                                 KEEPING GAMBLING PLACE
+237969                                                  VIOL WATER SAFETY ACT
+242106                                                    CRIMINAL CONSPIRACY
+247680                                                         CHILD GROOMING
+256156                                             COERCION OF PUBLIC SERVANT
+257860                                                             BESTIALITY
+264432                                            VIOL OF AGGRESSIVE CONFRONT
+264771                               TAMPER WITH ELECTRONIC MONITORING DEVICE
+281399                                                VIOL OF PRISONERS RIGHT
+299919                                                                   AWOL
+307134    Aggravated Assault                         ARSON WITH BODILY INJURY
+337178                                         POSS OF GAMBLING PARAPHERNALIA
+351108                                          CRIM NEG HOMICIDE/NON TRAFFIC
+362194                                              POSS OF PRESCRIPTION FORM
+408277                                           CONTRIBUTE DELINQUENCY MINOR
+408542    Aggravated Assault                               EXPIRED-ATT MURDER
+467966                                            BAIL JUMPING/FAIL TO APPEAR
+509687                                               LOITERING ON SCHOOL PROP
+515367    Aggravated Assault                   EXPIRED-ATT/TAKE WEAP FROM OFF
+526932                                                                 HAZING
+536773                                                         AIDING SUICIDE
+537135                                                              DESERTION
+596320                                                  AIRPORT - BOMB THREAT
+614563                                             POSS OF GAMBLING EQUIPMENT
+616672                                                    CRIMINAL NONSUPPORT
+636557                                             SALE OF LIQ WITHOUT PERMIT
+638675                                                              ATT ARSON
+661938                                          DISRUPTING MEETING/PROCESSION
+694010                                                    OFFICIAL MISCONDUCT
+755386                                                        FICTITIOUS NAME
+764399                                                        STAY AWAY ORDER
+783564                                                     COMMERCIAL BRIBERY
+789923                                                   SALE OF DXM TO MINOR
+797008                                            ATTACK ON ASSISTANCE ANIMAL
+957830                                          ILLEGAL TRANSPORTATION OF LIQ
+1091931                                                BOMB THREAT - AIRCRAFT
+1106322   Aggravated Assault                         EXPIRED - DEADLY ASSAULT
+1250526                                         FAILURE TO REPORT CHILD ABUSE
+1359652                                           VIOL CITY ORD-COVID 19 MASK
+1367472                           EXPIRED-DO NOT USE-ASSAULT ON PEACE OFFICER
+1571922                                            POSS OF LIQ ON SCHOOL PROP
+1685972                                              LOITERING IN PUBLIC PARK
+1840897                                            SALE OF LIQ IN PROHIB AREA
+1881271                                              MANF SYNTHETIC MARIJUANA
+1921201                                         EXPIRED-SOLICITATION OF CHILD
+1984778                                                GIFT TO PUBLIC SERVANT
+2027212                                              CRASH/NEGLIGENT HOMICIDE</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>UCRCats <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Category.Description <span class="sc">!=</span> <span class="st">''</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(Category.Description) <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(UCRCats) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>UCRCats <span class="ot">&lt;-</span> UCRCats[<span class="fu">c</span>(<span class="dv">7</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">3</span>,<span class="dv">2</span>),]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(UCRCats) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>defCats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="at">CHILD =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'CHILD'</span>, <span class="st">'MINOR'</span>, <span class="st">'TRUANCY'</span>, <span class="st">'NONSUPPORT'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Sex Offense involving a Child, Child Abuse/ Endangerment, Injury/Harm of Vulnerable Persons*</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">HARASSMENT =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'HARASSMENT'</span>, <span class="st">'PROWLER'</span>, <span class="st">'STALKING'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># General Harassment</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'SEX OFFENSE'</span><span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'SEX'</span>, <span class="st">'INVASIVE'</span>, <span class="st">'INTIMATE'</span>, <span class="st">'PROSTITUTION'</span>, <span class="st">'OBSC'</span>, <span class="st">'ADULT'</span>, <span class="st">'BESTIALITY'</span>, <span class="st">'INDECEN'</span>, <span class="st">'ENTIC'</span>, <span class="st">'PORN'</span>, <span class="st">'SOLICITATION OF'</span>, <span class="st">'GROOMING'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Sexual Offense</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'DISORDERLY CONDUCT'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'DOC'</span>, <span class="st">'LEWD'</span>, <span class="st">'URINATING'</span>, <span class="st">'RECKLESS CONDUCT'</span>, <span class="st">'ILLUMIN'</span>, <span class="st">'CORPSE'</span>, <span class="st">'ANIMAL'</span>, <span class="st">'RIOT'</span>, <span class="st">'PROCESSION'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co">#Disorderly Conduct</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">VOCO =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'VOCO'</span>, <span class="st">'ORDINANCE'</span>, <span class="st">'CURFEW'</span>, <span class="st">'CAMP'</span>, <span class="st">'AMPLIFIED'</span>, <span class="st">'GLASS'</span>, <span class="st">'CITY ORD'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Violation of City Ordinance</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'SIMPLE ASSAULT'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'ASSAULT'</span>,<span class="st">'ASLT$'</span>, <span class="st">'ASSLT'</span>, <span class="st">'PROD'</span>, <span class="st">'ATTACK BY DOG'</span>, <span class="st">'VIOLENCE'</span>, <span class="st">'HAZING'</span>, <span class="st">'SUICIDE'</span>, <span class="st">'CONFRONT'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Simple Assault/ ASSAULTIVE</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">TRESPASSING =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'TRESPASS'</span>, <span class="st">'LOITER'</span>, <span class="st">'SLEEP'</span>, <span class="st">'BEG'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># TRESPASSING</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'LARGE SCALE THREAT'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'THREAT'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Large Scale Threat</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'GENERAL DISTURBANCE'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'DISTURBANCE'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># General Disturbance</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'DRUG RELATED'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'DRUG'</span>, <span class="st">'SUB'</span>, <span class="st">'MARIJUANA'</span>, <span class="st">'INHALANT'</span>, <span class="st">'TOBACCO'</span>, <span class="st">'PRESCRIPTION'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co">#Drug Related</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'FRAUD'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'FRAUD'</span>, <span class="st">'FALSE'</span>, <span class="st">'IMPERSON'</span>, <span class="st">'FORGE'</span>, <span class="st">'COUNTERFEITING'</span>, <span class="st">'TAMPER'</span>, <span class="st">'LABEL'</span>, <span class="st">'PIGEON'</span>, <span class="st">'MEDICINE'</span>, <span class="st">'NAME'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co">#Fraud, Unlawful Deception</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'ALCOHOL RELATED'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'ALCOHOL'</span>, <span class="st">'LIQ'</span>, <span class="st">'DWI'</span>, <span class="st">'DUI'</span>, <span class="st">'WHILE INTOX'</span>, <span class="st">'BWI'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Alcohol Related</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'HARM OF VULNERABLE PERSONS'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'INJ'</span>, <span class="st">'ELDER'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co">#Injury/Harm of Vulnerable Persons*</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'NON-COMPLIANCE'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'WARR'</span>, <span class="st">'BAIL'</span>, <span class="st">'IDENTIFY'</span>, <span class="st">'PROBATION'</span>, <span class="st">'INTER'</span>, <span class="st">'911'</span>, <span class="st">'ARREST'</span>, <span class="st">'EVAD'</span>, <span class="st">'PERJURY'</span>, <span class="st">'PAROLE'</span>,<span class="st">'RETALIATION'</span>, <span class="st">'ESCAPE'</span>, <span class="st">'HINDERING'</span>, <span class="st">'BOND'</span>, <span class="st">'CONTEMPT'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Warrant, Non Compliance</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'CRIMINAL MISCHIEF'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'MISCHIEF'</span>, <span class="st">'ARSON'</span>, <span class="st">'DAMAGE'</span>, <span class="st">'GRAFFITI'</span>, <span class="st">'DESECRATION'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># CRIMINAL MISCHIEF</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'UNLAWFUL RESTRAINT'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'KIDNAP'</span>, <span class="st">'RESTRAINT'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># Unlawful Restraint</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'WEAPON RELATED'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'WEAPON'</span>, <span class="st">'FIREARM'</span>, <span class="st">'EXPLOSIVE'</span>, <span class="st">'UCW'</span>, <span class="st">'KNIFE'</span>, <span class="st">'CARRY'</span>, <span class="st">'HANDGUN'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># WEAPON RELATED</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'PROTECTIVE ORDER'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'ORDER'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co">#PROTECTIVE/ RESTRAINING ORDER</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'FINANCIAL CRIME'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'CRED'</span>, <span class="st">'DEBIT'</span>, <span class="st">'MONEY'</span>, <span class="st">'BANK'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># FINANCIAL CRIME</span></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">LITTERING =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'LITTER'</span>, <span class="st">'DUMP'</span>, <span class="st">'WASTE'</span>, <span class="st">'REFRIGERATOR'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co">#LITTERING</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'CRIMINAL CONSPIRACY'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'CRIMINAL SOLICITATION'</span>, <span class="st">'ABATE'</span>, <span class="st">'ORGANIZED'</span>, <span class="st">'CONSPIR'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># CRIMINAL CONSPIRACY</span></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'ABUSE OF OFFICE'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'OFFICIAL'</span>, <span class="st">'PRISONER'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># ABUSE OF OFFICE</span></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>                 ,<span class="st">'GAMBLING RELATED'</span> <span class="ot">=</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'GAMBL'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># GAMBLING RELATED</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">THEFT =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'RENTAL CAR'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>)<span class="co"># THEFT</span></span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">MURDER =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'MANSLAUGHTER'</span>, <span class="st">'HOMICIDE'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># MURDER (MANSLAUGHTER INCLUDED BECAUSE THAT'S HOW FBI CATS)</span></span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">BRIBERY =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'BRIBE'</span>, <span class="st">'COERCION OF PUBLIC SERVANT'</span>, <span class="st">'GIFT'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>) <span class="co"># BRIBERY</span></span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>                 ,<span class="at">OTHER =</span> <span class="fu">str_flatten</span>(<span class="fu">c</span>(<span class="st">'IMMIGRATION'</span>, <span class="st">'ALIEN'</span>, <span class="st">'OTHER'</span>, <span class="st">'DISRUPTION OF CLASSES'</span>, <span class="st">'AIRPORT'</span>, <span class="st">'INSTRUMENT'</span>,<span class="st">'SCHOOLS'</span>, <span class="st">'MASSAGE'</span>, <span class="st">'WATER'</span>, <span class="st">'AWOL'</span>, <span class="st">'DESERTION'</span>, <span class="st">'RENDER'</span>), <span class="at">collapse =</span> <span class="st">'|'</span>)<span class="co"># OTHER</span></span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a>                 )<span class="sc">%&gt;%</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a>defCats<span class="sc">$</span>Cat <span class="ot">&lt;-</span> <span class="fu">rownames</span>(defCats)</span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(defCats) <span class="ot">&lt;-</span> <span class="cn">NULL</span>  </span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(defCats) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'strSearch'</span>, <span class="st">'Cats'</span>)</span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span> </span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Crime.Category =</span> <span class="fu">if_else</span>(Category.Description <span class="sc">==</span> <span class="st">''</span>, </span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a>                                    <span class="fu">str_extract</span>(Highest.Offense.Description, <span class="fu">str_flatten</span>(<span class="fu">toupper</span>(UCRCats), <span class="at">collapse =</span> <span class="st">'|'</span>)), </span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a>                                    <span class="fu">toupper</span>(Category.Description)</span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a>                                    )</span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a>          ,<span class="at">Crime.Category =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(Crime.Category),</span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a>                                    <span class="fu">case_when</span>(</span>
+<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">1</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">1</span>,<span class="dv">2</span>],</span>
+<span id="cb20-46"><a href="#cb20-46" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">2</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">2</span>,<span class="dv">2</span>],</span>
+<span id="cb20-47"><a href="#cb20-47" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">3</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">3</span>,<span class="dv">2</span>],</span>
+<span id="cb20-48"><a href="#cb20-48" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">4</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">4</span>,<span class="dv">2</span>],</span>
+<span id="cb20-49"><a href="#cb20-49" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">5</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">5</span>,<span class="dv">2</span>],</span>
+<span id="cb20-50"><a href="#cb20-50" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">6</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">6</span>,<span class="dv">2</span>],</span>
+<span id="cb20-51"><a href="#cb20-51" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">7</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">7</span>,<span class="dv">2</span>],</span>
+<span id="cb20-52"><a href="#cb20-52" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">8</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">8</span>,<span class="dv">2</span>],</span>
+<span id="cb20-53"><a href="#cb20-53" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">9</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">9</span>,<span class="dv">2</span>],</span>
+<span id="cb20-54"><a href="#cb20-54" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">10</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">10</span>,<span class="dv">2</span>],</span>
+<span id="cb20-55"><a href="#cb20-55" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">11</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">11</span>,<span class="dv">2</span>],</span>
+<span id="cb20-56"><a href="#cb20-56" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">12</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">12</span>,<span class="dv">2</span>],</span>
+<span id="cb20-57"><a href="#cb20-57" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">13</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">13</span>,<span class="dv">2</span>],</span>
+<span id="cb20-58"><a href="#cb20-58" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">14</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">14</span>,<span class="dv">2</span>],</span>
+<span id="cb20-59"><a href="#cb20-59" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">15</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">15</span>,<span class="dv">2</span>],</span>
+<span id="cb20-60"><a href="#cb20-60" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">16</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">16</span>,<span class="dv">2</span>],</span>
+<span id="cb20-61"><a href="#cb20-61" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">17</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">17</span>,<span class="dv">2</span>],</span>
+<span id="cb20-62"><a href="#cb20-62" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">18</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">18</span>,<span class="dv">2</span>],</span>
+<span id="cb20-63"><a href="#cb20-63" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">19</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">19</span>,<span class="dv">2</span>],</span>
+<span id="cb20-64"><a href="#cb20-64" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">20</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">20</span>,<span class="dv">2</span>],</span>
+<span id="cb20-65"><a href="#cb20-65" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">21</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">21</span>,<span class="dv">2</span>],</span>
+<span id="cb20-66"><a href="#cb20-66" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">22</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">22</span>,<span class="dv">2</span>],</span>
+<span id="cb20-67"><a href="#cb20-67" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">23</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">23</span>,<span class="dv">2</span>],</span>
+<span id="cb20-68"><a href="#cb20-68" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">24</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">24</span>,<span class="dv">2</span>],</span>
+<span id="cb20-69"><a href="#cb20-69" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">25</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">25</span>,<span class="dv">2</span>],</span>
+<span id="cb20-70"><a href="#cb20-70" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">26</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">26</span>,<span class="dv">2</span>],</span>
+<span id="cb20-71"><a href="#cb20-71" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">27</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> defCats[<span class="dv">27</span>,<span class="dv">2</span>],</span>
+<span id="cb20-72"><a href="#cb20-72" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">.default =</span> Crime.Category</span>
+<span id="cb20-73"><a href="#cb20-73" aria-hidden="true" tabindex="-1"></a>                                    ),</span>
+<span id="cb20-74"><a href="#cb20-74" aria-hidden="true" tabindex="-1"></a>                                    Crime.Category</span>
+<span id="cb20-75"><a href="#cb20-75" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb20-76"><a href="#cb20-76" aria-hidden="true" tabindex="-1"></a>          ,<span class="at">Crime.Category =</span> <span class="fu">if_else</span>(Crime.Category <span class="sc">==</span> <span class="st">'CHILD'</span>,</span>
+<span id="cb20-77"><a href="#cb20-77" aria-hidden="true" tabindex="-1"></a>                                    <span class="fu">case_when</span>(</span>
+<span id="cb20-78"><a href="#cb20-78" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">str_detect</span>(Highest.Offense.Description,defCats[<span class="dv">3</span>,<span class="dv">1</span>]) <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">'SEX OFFENSE INVOLVING A CHILD'</span>,</span>
+<span id="cb20-79"><a href="#cb20-79" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">.default =</span> <span class="st">'HARM OF VULNERABLE PERSONS'</span></span>
+<span id="cb20-80"><a href="#cb20-80" aria-hidden="true" tabindex="-1"></a>                                    ),</span>
+<span id="cb20-81"><a href="#cb20-81" aria-hidden="true" tabindex="-1"></a>                                    Crime.Category</span>
+<span id="cb20-82"><a href="#cb20-82" aria-hidden="true" tabindex="-1"></a>                                    )</span>
+<span id="cb20-83"><a href="#cb20-83" aria-hidden="true" tabindex="-1"></a>          ,<span class="at">Crime.Category =</span> <span class="fu">if_else</span>(Highest.Offense.Description <span class="sc">==</span> <span class="st">'JUSTIFIED HOMICIDE'</span>, <span class="st">'JUSTIFIED HOMICIDE'</span>, Crime.Category)</span>
+<span id="cb20-84"><a href="#cb20-84" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb20-85"><a href="#cb20-85" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">select</span>(Highest.Offense.Description, Category.Description, Crime.Category) <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Highest.Offense.Description Category.Description
+1   SEXUAL ASSAULT OF CHILD/OBJECT                 Rape
+2                  RAPE OF A CHILD                 Rape
+3                             RAPE                 Rape
+4                             RAPE                 Rape
+5         SEXUAL ASSAULT W/ OBJECT                 Rape
+6                             RAPE                 Rape
+7   ASSAULT  CONTACT-SEXUAL NATURE                     
+8                       HARASSMENT                     
+9                             RAPE                 Rape
+10   DEPENDENT AND NEGLECTED CHILD                     
+11        SEXUAL ASSAULT W/ OBJECT                 Rape
+12               INDECENT EXPOSURE                     
+13  INDECENCY WITH A CHILD/CONTACT                     
+14                 RAPE OF A CHILD                 Rape
+15  INDECENCY WITH A CHILD/CONTACT                     
+16                 RAPE OF A CHILD                 Rape
+17     BURG OF RES - SEXUAL NATURE             Burglary
+18  INDECENCY WITH A CHILD/CONTACT                     
+19                            RAPE                 Rape
+20                            RAPE                 Rape
+21             ASSAULT WITH INJURY                     
+22  FAILURE TO REG AS SEX OFFENDER                     
+23                            RAPE                 Rape
+24                            RAPE                 Rape
+25                        AGG RAPE                 Rape
+26                            RAPE                 Rape
+27         STATUTORY RAPE OF CHILD                     
+28               THEFT FROM PERSON                Theft
+29  INDECENCY WITH A CHILD/CONTACT                     
+30           BURGLARY OF RESIDENCE             Burglary
+31  ASSAULT  CONTACT-SEXUAL NATURE                     
+32                            RAPE                 Rape
+33  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+34  FAILURE TO REG AS SEX OFFENDER                     
+35  INDECENCY WITH A CHILD/CONTACT                     
+36               INDECENT EXPOSURE                     
+37                 RAPE OF A CHILD                 Rape
+38                            RAPE                 Rape
+39  INDECENCY WITH A CHILD/CONTACT                     
+40  SEXUAL ASSAULT OF CHILD/OBJECT                 Rape
+41                            RAPE                 Rape
+42   INDECENCY WITH CHILD/EXPOSURE                     
+43  FAILURE TO REG AS SEX OFFENDER                     
+44  FAILURE TO REG AS SEX OFFENDER                     
+45  INDECENCY WITH A CHILD/CONTACT                     
+46             ASSAULT WITH INJURY                     
+47                           THEFT                Theft
+48  FAILURE TO REG AS SEX OFFENDER                     
+49        SEXUAL ASSAULT W/ OBJECT                 Rape
+50         STATUTORY RAPE OF CHILD                     
+51                 INJURY TO CHILD                     
+52   DEPENDENT AND NEGLECTED CHILD                     
+53        SEXUAL ASSAULT W/ OBJECT                 Rape
+54             AGG RAPE OF A CHILD                 Rape
+55  FAILURE TO REG AS SEX OFFENDER                     
+56                            RAPE                 Rape
+57  INDECENCY WITH A CHILD/CONTACT                     
+58  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+59  SEXUAL ASSAULT OF CHILD/OBJECT                 Rape
+60  SEXUAL ASSAULT OF CHILD/OBJECT                 Rape
+61  FAILURE TO REG AS SEX OFFENDER                     
+62                THEFT OF BICYCLE                Theft
+63  FAILURE TO REG AS SEX OFFENDER                     
+64  SEXUAL ASSAULT OF CHILD/OBJECT                 Rape
+65              ASSAULT BY CONTACT                     
+66  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+67                 RAPE OF A CHILD                 Rape
+68  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+69         STATUTORY RAPE OF CHILD                     
+70  INDECENCY WITH A CHILD/CONTACT                     
+71  SEXUAL ASSAULT OF CHILD/OBJECT                 Rape
+72        SEXUAL ASSAULT W/ OBJECT                 Rape
+73  INDECENCY WITH A CHILD/CONTACT                     
+74  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+75                            RAPE                 Rape
+76  FAILURE TO REG AS SEX OFFENDER                     
+77  FAILURE TO REG AS SEX OFFENDER                     
+78  FAILURE TO REG AS SEX OFFENDER                     
+79  FAILURE TO REG AS SEX OFFENDER                     
+80                     RETALIATION                     
+81  INDECENCY WITH A CHILD/CONTACT                     
+82                            RAPE                 Rape
+83                 RAPE OF A CHILD                 Rape
+84  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+85  INDECENCY WITH A CHILD/CONTACT                     
+86      AGG FORCED SODOMY OF CHILD                 Rape
+87  FAILURE TO REG AS SEX OFFENDER                     
+88                        AGG RAPE                 Rape
+89  INDECENCY WITH A CHILD/CONTACT                     
+90                            RAPE                 Rape
+91  INDECENCY WITH A CHILD/CONTACT                     
+92        SEXUAL ASSAULT W/ OBJECT                 Rape
+93                            RAPE                 Rape
+94  FAILURE TO REG AS SEX OFFENDER                     
+95  DISCLOSE/PROMO INTIMATE VISUAL                     
+96        SEXUAL ASSAULT W/ OBJECT                 Rape
+97  AGG SEXUAL ASSAULT CHILD/OBJEC                 Rape
+98               HARASSMENT ONLINE                     
+99                            RAPE                 Rape
+100                           RAPE                 Rape
+                   Crime.Category
+1                            RAPE
+2                            RAPE
+3                            RAPE
+4                            RAPE
+5                            RAPE
+6                            RAPE
+7                     SEX OFFENSE
+8                      HARASSMENT
+9                            RAPE
+10     HARM OF VULNERABLE PERSONS
+11                           RAPE
+12                    SEX OFFENSE
+13  SEX OFFENSE INVOLVING A CHILD
+14                           RAPE
+15  SEX OFFENSE INVOLVING A CHILD
+16                           RAPE
+17                       BURGLARY
+18  SEX OFFENSE INVOLVING A CHILD
+19                           RAPE
+20                           RAPE
+21                 SIMPLE ASSAULT
+22                    SEX OFFENSE
+23                           RAPE
+24                           RAPE
+25                           RAPE
+26                           RAPE
+27                           RAPE
+28                          THEFT
+29  SEX OFFENSE INVOLVING A CHILD
+30                       BURGLARY
+31                    SEX OFFENSE
+32                           RAPE
+33                           RAPE
+34                    SEX OFFENSE
+35  SEX OFFENSE INVOLVING A CHILD
+36                    SEX OFFENSE
+37                           RAPE
+38                           RAPE
+39  SEX OFFENSE INVOLVING A CHILD
+40                           RAPE
+41                           RAPE
+42  SEX OFFENSE INVOLVING A CHILD
+43                    SEX OFFENSE
+44                    SEX OFFENSE
+45  SEX OFFENSE INVOLVING A CHILD
+46                 SIMPLE ASSAULT
+47                          THEFT
+48                    SEX OFFENSE
+49                           RAPE
+50                           RAPE
+51     HARM OF VULNERABLE PERSONS
+52     HARM OF VULNERABLE PERSONS
+53                           RAPE
+54                           RAPE
+55                    SEX OFFENSE
+56                           RAPE
+57  SEX OFFENSE INVOLVING A CHILD
+58                           RAPE
+59                           RAPE
+60                           RAPE
+61                    SEX OFFENSE
+62                          THEFT
+63                    SEX OFFENSE
+64                           RAPE
+65                 SIMPLE ASSAULT
+66                           RAPE
+67                           RAPE
+68                           RAPE
+69                           RAPE
+70  SEX OFFENSE INVOLVING A CHILD
+71                           RAPE
+72                           RAPE
+73  SEX OFFENSE INVOLVING A CHILD
+74                           RAPE
+75                           RAPE
+76                    SEX OFFENSE
+77                    SEX OFFENSE
+78                    SEX OFFENSE
+79                    SEX OFFENSE
+80                 NON-COMPLIANCE
+81  SEX OFFENSE INVOLVING A CHILD
+82                           RAPE
+83                           RAPE
+84                           RAPE
+85  SEX OFFENSE INVOLVING A CHILD
+86                           RAPE
+87                    SEX OFFENSE
+88                           RAPE
+89  SEX OFFENSE INVOLVING A CHILD
+90                           RAPE
+91  SEX OFFENSE INVOLVING A CHILD
+92                           RAPE
+93                           RAPE
+94                    SEX OFFENSE
+95                    SEX OFFENSE
+96                           RAPE
+97                           RAPE
+98                     HARASSMENT
+99                           RAPE
+100                          RAPE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">dim</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2461621      28</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Crime.Category, Category.Description) <span class="sc">%&gt;%</span> <span class="fu">summarize</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cnt =</span> <span class="fu">n</span>()</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'Crime.Category'. You can override using
+the `.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 36 × 3
+# Groups:   Crime.Category [33]
+   Crime.Category      Category.Description    cnt
+   &lt;chr&gt;               &lt;chr&gt;                 &lt;int&gt;
+ 1 ABUSE OF OFFICE     ""                      135
+ 2 AGGRAVATED ASSAULT  "Aggravated Assault"  43636
+ 3 ALCOHOL RELATED     ""                   103340
+ 4 AUTO THEFT          "Auto Theft"          62114
+ 5 BRIBERY             ""                       20
+ 6 BURGLARY            "Burglary"           130503
+ 7 CRIMINAL CONSPIRACY ""                      633
+ 8 CRIMINAL MISCHIEF   ""                   166706
+ 9 DISORDERLY CONDUCT  ""                    24842
+10 DRUG RELATED        ""                   128900
+# ℹ 26 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>d3 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Crime.Category)) <span class="sc">%&gt;%</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#,Category.Description == '') %&gt;% </span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select(Crime.Category, Highest.Offense.Description) %&gt;% </span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crime.Category) <span class="sc">%&gt;%</span>  <span class="co">#, Highest.Offense.Description) %&gt;% </span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">cnt =</span> <span class="fu">n</span>()</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="at">by =</span> cnt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 33 × 2
+   Crime.Category                  cnt
+   &lt;chr&gt;                         &lt;int&gt;
+ 1 BRIBERY                          20
+ 2 JUSTIFIED HOMICIDE               44
+ 3 ABUSE OF OFFICE                 135
+ 4 CRIMINAL CONSPIRACY             633
+ 5 GAMBLING RELATED                861
+ 6 MURDER                          862
+ 7 UNLAWFUL RESTRAINT             1274
+ 8 LITTERING                      2800
+ 9 SEX OFFENSE INVOLVING A CHILD  6147
+10 WEAPON RELATED                11867
+# ℹ 23 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="tidied-up" class="level3">
+<h3 class="anchored" data-anchor-id="tidied-up">Tidied Up</h3>
+<p>All done, data is clean now.</p>
+<p>Let’s assign at the end to some final variable, this makes it easier to add further cleaning steps above.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>processeddata <span class="ot">&lt;-</span> d3</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="save-data" class="level1">
+<h1>Save data</h1>
+<p>Finally, we save the clean data as RDS file.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>save_data_location <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>,<span class="st">"processed-crime.rds"</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(processeddata, <span class="at">file =</span> save_data_location)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

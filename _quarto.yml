@@ -22,6 +22,8 @@ website:
             file: data-exercise/data-exercise.qmd
           - text: "CDC Data Exercise"
             file: cdcdata-exercise/cdcdata-exercise.qmd
+          - text: "Crime in Austin, TX"
+            file: HYLTIN-PII-project/products/manuscript/Manuscript.qmd
     right:
       - icon: github 
         href: https://github.com/whygit10/williamhyltin-P2-portfolio 
