@@ -1,0 +1,453 @@
+---
+title: "An example exploratory analysis script"
+date: "2024-07-31"
+output: html_document
+---
+
+  
+  
+
+# Setup
+
+```{r setup}
+#load needed packages. make sure they are installed.
+pacman::p_load(here, knitr, tidyverse, skimr, fpp2, tigris, plotly, viridis, transformr, htmlwidgets, gt, gtExtras, widgetframe)
+theme_set(theme_minimal())
+```
+
+
+Load the data.
+
+```{r}
+d1 <- readRDS(here('HYLTIN-PII-project','data','processed-data','processed-crime.rds'))
+tig_zips <- zctas(cb=TRUE, starts_with = c(unique(d1$Zip.Code)), year = 2020)
+```
+
+
+
+# Data exploration through tables
+
+Showing a bit of code to produce and save a summary table.
+
+```{r}
+summary(d1)
+head(d1)
+str(d1)
+skim(d1)
+```
+
+```{r}
+summary(tig_zips)
+head(tig_zips)
+str(tig_zips)
+skim(tig_zips)
+```
+
+Important to note that the dataset has several date fields, and that alone will be ripe with opportunity for exploration. However I want to take a look at some of the other variables first, to see if maybe isolating to one of the other categories, or including other categorical variables in the time series could be useful. First off is Zip Code, because location is often a major factor in determining the amount and type of crime that would occur.
+
+```{r}
+d1 %>% 
+  mutate(years = year(Occurred.Date),
+         years = as.character(years)
+         ) %>% 
+  group_by(years, Zip.Code) %>% 
+  summarize(
+    count = n()
+  ) %>% as.data.frame() %>% pivot_wider(names_from = years, values_from = count)
+```
+
+Layering in the year gives an interesting view, because it gives us the opportunity to see major increases in certain locations over time. However, there are a lot of zip Codes and a lot of years in this dataset. A visualization may help with this, my first thought being a chloropeth plot with a slider for the year value. Other quicker solutions might be looking at the individual years as observations of sorts, then looking at summary statistics. More to come here.
+
+```{r}
+d1 %>% 
+  mutate(years = year(Occurred.Date)
+         #years = as.character(years)
+         ) %>% 
+  #filter(years == '2023' | years == '2022') %>% 
+  #group_by(Family.Violence, Highest.Offense.Description, years) %>% 
+  group_by(Highest.Offense.Description, years) %>% 
+  summarize(cnt = n(), .groups = 'drop') %>% 
+  #group_by(Highest.Offense.Description, years) %>% 
+  #mutate(tot = sum(cnt)) %>% 
+  #relocate(tot, .after = years) %>% 
+  mutate(Highest.Offense.Description = as.factor(Highest.Offense.Description)) %>%
+  as.data.frame() %>%
+  arrange(years) %>% 
+  pivot_wider(names_from = years, values_from = cnt) 
+  
+```
+
+Similar to our zip code variable here, but there are far too many crime descriptions to use. Grouping some together may work, I don't think we have enough information in the dataset overall to do any sort of classification modeling however, so it may amount to a rules based classification using regular expressions. Other variables may still help with this, such as the UCF classification variables.
+
+```{r}
+d1 %>% 
+  mutate(
+    Category.Description = if_else(
+      Category.Description == '', 'NA/Unknown', Category.Description
+      )
+    ) %>% 
+  group_by(Category.Description, Highest.Offense.Description) %>% 
+  summarize(
+    cnt = n()
+    ) %>% 
+  pivot_wider(
+    names_from = Category.Description, values_from = cnt
+    )
+```
+
+The UCF classifiers are much more consumable, but there are more incidents that are not classified than are. That said, this might be a good start for a rules based classification. Many of the unclassified incidents would not fit very nicely into the groups anyway, so some new categories may need to be made. I may or may not come back to the re-classification part, but ultimately the genesis of this project was with reports on the amount of homicide in the city, so the already existing descriptions may be enough to drill down into just those.
+
+*reminder to myself to save figures from this file to bring into manuscript and presentation later.*
+
+# Data exploration through figures
+
+Time is a variable that is much easier to interpret with a plot, so let's start there.
+Time series first.
+
+```{r}
+dayline <- d1 %>% group_by(Occurred.Date) %>% 
+  summarize(
+  cnt = n()
+) %>% as.data.frame() %>% 
+  ggplot(mapping = aes(x=Occurred.Date, y=cnt)) +
+  geom_line() +
+  labs(title = 'Austin Crime Over Time', x = 'Time of Occurence (by day)', y = 'Count') +
+  theme(panel.background = element_rect(fill = 'white',
+                                        color = 'white'),
+        plot.background = element_rect(fill = 'white',
+                                        color = 'white')
+        )
+
+dayline
+
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'crime-by-day.png'), dayline)
+```
+
+I expected aggregating by day to actually look worse than this. There is a clear trend, upwards at first but then starts decreasing around 2008 or so. Seeing this I am tempted to looking into time series modeling. There may be a seasonal pattern in some of those spikes, but that may be something that can be resolved with different methods. I'm tempted to go ARIMA, because frankly that's the one I'm familiar with, but I'll have to do some reading up on my options. An interesting idea might be to fit the model, make predictions, and then see where I landed compared to the actual data before the class ends.
+
+```{r}
+monthline <- d1 %>% filter(Occurred.Date <= '2024-03-31') %>%
+  mutate(Occurred.Date = trunc.Date(Occurred.Date, 'months')) %>% 
+  group_by(Occurred.Date) %>% 
+  summarize(
+  cnt = n()
+) %>% as.data.frame() %>% 
+  ggplot(mapping = aes(x=Occurred.Date, y=cnt)) +
+  geom_line() +
+  labs(title = 'Austin Crime Over Time', x = 'Time of Occurence (by month)', y = 'Count') +
+  theme(panel.background = element_rect(fill = 'white',
+                                        color = 'white'),
+        plot.background = element_rect(fill = 'white',
+                                        color = 'white')
+        )
+
+monthline
+
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'crime-by-month.png'), monthline)
+```
+
+
+Monthly looks even better, again further lending itself to the idea of a time series model. The downward spikes are more prevalent here and may cause problems themselves as well, but again the seasonality may be able to be resolved with things like logs or differencing. As a note, in this and the last plot I filter out 2024, mostly due to a large drop at the end from the incomplete month, but also for the aforementioned idea of comparing predictions to actual results.
+
+A potentially quick way to identify "peak" months for crime would be via a bar chart aggregating all occurrences in each month together. I was hoping to see some quick trends here, but I see surprisingly little here. The highest month is May, potentially because of school letting out/ graduations for UT Austin, but I wouldnt say the difference is large enough compared to other months to really point to any one reason. This may be another one to layer in with time, like a chart with a slider for the year to see shifts in crime frequency by month over time. 
+
+```{r}
+murdline <- d1 %>% filter(Occurred.Date <= '2024-03-31', Crime.Category == 'MURDER') %>%
+  mutate(Occurred.Date = trunc.Date(Occurred.Date, 'months')) %>% 
+  group_by(Occurred.Date) %>% 
+  summarize(
+  cnt = n()
+) %>% as.data.frame() %>% 
+  ggplot(mapping = aes(x=Occurred.Date, y=cnt)) +
+  geom_line() +
+  labs(title = 'Austin Murder Over Time', x = 'Time of Occurence (by month)', y = 'Count') +
+  theme(panel.background = element_rect(fill = 'white',
+                                        color = 'white'),
+        plot.background = element_rect(fill = 'white',
+                                        color = 'white')
+        )
+
+murdline
+
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'murder-by-time.png'), murdline)
+```
+
+
+```{r}
+d2 <- d1 %>% 
+  mutate(
+    Occurred.Month = month(Occurred.Date, label = TRUE),
+    Occurred.Day = weekdays(Occurred.Date),
+    Occurred.Year = year(Occurred.Date),
+    Occur.Report.Diff = Report.Date - Occurred.Date
+  )
+d2 %>% 
+  #filter(Occurred.Year == 2023) %>%
+  ggplot(aes(x=Occurred.Month)) +
+  geom_bar()
+```
+
+Now a Zip Code bar chart. Really a bit of a graphical representation of what we saw earlier, though I filtered it to the two most recent complete years. Again, looking for big swings, and simultaneously taking a quick peak at the Family Violence indicator. Surprisingly low volume there, which leads me to believe it just doesn't get captured appropriately every time, especially when comparing with the descriptions themselves, which we will see in a moment. Going back to the zip codes, there might be an opportunity to do something like binning the zip codes with high medium and low crime areas, or something of the sort.
+
+```{r}
+d1 %>% 
+  mutate(years = year(Occurred.Date),
+         years = as.character(years)
+         ) %>% 
+  filter(years == '2003' | years == '2022') %>% 
+  group_by(Family.Violence, Zip.Code, years) %>% 
+  summarize(cnt = n(), .groups = 'drop') %>% 
+  group_by(Zip.Code, years) %>% 
+  mutate(tot = sum(cnt)) %>% 
+  relocate(tot, .after = years) %>% 
+  mutate(Zip.Code = as.character(Zip.Code)) %>%
+  as.data.frame() %>% 
+  arrange(desc(tot)) %>% head(100) %>% 
+  ggplot(aes(fill=Family.Violence, x= reorder(Zip.Code,cnt), y=cnt)) +
+  geom_bar(position = 'stack', stat='identity') +
+  facet_wrap(~years) +
+  coord_flip()
+```
+
+Now a bar chart by crime description. This is similar to the last plot, but a little more disparate here. There are so many more crime descriptions than zip codes, so they are much more easily spread thin. That said, that actually makes the top five crime descriptions stand out a little more. So going back to the idea of creating new classifications, that may be a good idea to make sure those 5 are appropriately captured. And again, the family violence indicator is captured almost entirely by one description, yet the top description is Family disturbance. An easy explanation may be because the description is of the Highest Offense in the incident, so when there is physical family violence, it is often the highest offense.
+
+```{r}
+d1 %>% 
+  mutate(years = year(Occurred.Date),
+         years = as.character(years)
+         ) %>% 
+  filter(years == '2023' | years == '2022') %>% 
+  group_by(Family.Violence, Highest.Offense.Description, years) %>% 
+  summarize(cnt = n(), .groups = 'drop') %>% 
+  group_by(Highest.Offense.Description, years) %>% 
+  mutate(tot = sum(cnt)) %>% 
+  relocate(tot, .after = years) %>% 
+  mutate(Highest.Offense.Description = as.factor(Highest.Offense.Description)) %>%
+  as.data.frame() %>% 
+  arrange(desc(tot)) %>% head(50) %>% 
+  ggplot(aes(fill=Family.Violence, x= reorder(Highest.Offense.Description,cnt), y=cnt)) +
+  geom_bar(position = 'stack', stat='identity') +
+  facet_wrap(~years) +
+  coord_flip() 
+```
+
+
+```{r}
+yearlyCrime <- d1 %>% mutate(
+  Zip.Char = as.character(Zip.Code),
+  years = year(Occurred.Date),
+  years = as.character(years)
+  ) %>% filter(years != 2024) %>% 
+  group_by(Zip.Char, years) %>% 
+  summarize(crim.count  = n()) %>% 
+  ungroup() %>% 
+  as.data.frame()
+  #filter(count >= 500) %>%
+  #filter(Zip.Char == '78741') %>%
+  
+
+allYrsZips <- expand.grid(years = unique(yearlyCrime$years), Zip.Char = unique(yearlyCrime$Zip.Char))
+
+yearlyCrimeAll <- left_join(allYrsZips, yearlyCrime, by = join_by(Zip.Char, years))  %>% 
+  inner_join(tig_zips, by = join_by(Zip.Char == ZCTA5CE20)) %>% 
+  mutate(crim.count = ifelse(is.na(crim.count), 0, crim.count))
+  
+```
+
+```{r}
+cpeth <- yearlyCrimeAll %>% filter(crim.count >= 50) %>% 
+  ggplot() +
+  geom_sf(aes(geometry = geometry, fill = crim.count, frame = years, text = paste(Zip.Char, '<br>', crim.count))) +
+  scale_fill_gradient2(low = "#E0144C", mid = '#FFFFFF', high = "#000067", midpoint = -5000, 
+                       trans = 'reverse') +
+  theme_classic() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        line = element_blank(),
+        plot.title = element_text(hjust = 0, size = 15)) +
+  labs(fill = 'Crime Count',
+       title = 'Crime by Location Over Time')
+
+cplotly <- cpeth %>% ggplotly() %>% 
+  layout(hoverlabel = text) %>% 
+  animation_opts(1500, 1) %>% 
+  animation_slider(currentvalue = list(visible = FALSE)) %>% 
+  animation_button(x = 0, xanchor = "left", y = 0, yanchor = "bottom")
+cplotly
+
+saveWidget(frameableWidget(cplotly), here('HYLTIN-PII-project','results', 'figures', 'html-widgets', 'crime-location.html'))
+```
+
+```{r}
+yearlyMurder <- d1 %>% mutate(
+  Zip.Char = as.character(Zip.Code),
+  years = year(Occurred.Date),
+  years = as.character(years)
+  ) %>% filter(years != 2024, Crime.Category == 'MURDER') %>% 
+  group_by(Zip.Char, years) %>% 
+  summarize(murder.count  = n()) %>% 
+  ungroup() %>% 
+  as.data.frame()
+
+yearlyMurderAll <- left_join(allYrsZips, yearlyMurder, by = join_by(Zip.Char, years))  %>% 
+  inner_join(tig_zips, by = join_by(Zip.Char == ZCTA5CE20)) %>% 
+  mutate(murder.count = ifelse(is.na(murder.count), 0, murder.count))
+```
+
+```{r}
+cpeth2 <- yearlyMurderAll %>% #filter(murder.count >= 1) %>% 
+  ggplot() +
+  geom_sf(aes(geometry = geometry, fill = murder.count, frame = years)) +
+  #geom_sf_label(aes(label = paste(Zip.Char, '<br>', murder.count))) +
+  scale_fill_gradient2(low = "#E0144C", mid = '#FFFFFF', high = "#000067", 
+                       trans = 'reverse') +
+  theme_classic() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        line = element_blank(),
+        plot.title = element_text(hjust = 0, size = 15)) +
+  labs(fill = 'Murder Count',
+       title = 'Murder by Location Over Time')
+
+cplotly2 <- cpeth2 %>% ggplotly() %>% 
+  layout(hoverlabel = text) %>% 
+  animation_opts(1500, 1) %>% 
+  animation_slider(currentvalue = list(visible = FALSE)) %>% 
+  animation_button(x = 0, xanchor = "left", y = 0, yanchor = "bottom")
+cplotly2
+```
+
+```{r}
+catYearly <- d1 %>% mutate(
+  years = year(Occurred.Date)
+  #years = as.character(years)
+  ) %>% filter(years != 2024) %>% 
+  group_by(Crime.Category, years) %>% 
+  summarize(crim.count  = n()) %>% 
+  ungroup() %>% 
+  as.data.frame()
+
+allYrsCats <- expand.grid(years = unique(catYearly$years), Crime.Category = unique(catYearly$Crime.Category))
+
+yearlyAllCats <- left_join(allYrsCats, catYearly, by = join_by(Crime.Category, years))  %>% 
+  mutate(crim.count = ifelse(is.na(crim.count), 0, crim.count))
+
+catbar <- yearlyAllCats %>%  
+  ggplot() +
+  geom_bar(aes(y= fct_reorder(Crime.Category, crim.count), x = crim.count, frame = years), stat = 'identity') +
+  labs(x = 'Count of Offense', y = 'Offense Description', title = 'Frequncy of Crim by Offense Category')
+  #scale_x_continuous(transform = 'log')
+catbar
+
+fig <- plot_ly(yearlyAllCats,
+  x = ~crim.count,
+  y = ~fct_reorder(Crime.Category, crim.count),
+  type = 'bar',
+  showlegend = F,
+  frame = ~years,
+  marker = list(color = '#000067')
+)
+
+catbarly <- fig %>% 
+  layout(
+    yaxis = list(
+      title = '', tickangle = -30, tickfont = list(size = 8)
+      ), 
+    xaxis = list(
+      title = 'Count of Occurence' 
+    ),
+    title = list(
+      text = 'Yearly Occurence of Crime by Category',
+      y = 0.99, x = 0.1, xanchor = 'left', yanchor = 'top',
+      font = list(
+        size = 18
+      )
+      )
+    )
+
+catbarly
+
+saveWidget(frameableWidget(catbarly), here('HYLTIN-PII-project','results', 'figures', 'html-widgets', 'crime-cat.html'))
+```
+
+First table is intended to act as a translation key between description and category, but also serves well to illustrate the motivation behind the categorizations.
+```{r}
+RecatTable <- d1 %>% 
+  filter(year(Occurred.Date) < 2024) %>% 
+  mutate(
+  Occur.Years = trunc.Date(Occurred.Date, 'years')
+  ) %>% 
+  group_by(Crime.Category, Highest.Offense.Description, Occur.Years) %>% 
+  summarize(
+    Count = n(),
+    .groups = 'drop'
+  ) %>% 
+  arrange(by = Occur.Years) %>%
+  group_by(Crime.Category, Highest.Offense.Description) %>% 
+  summarize(
+    mean = mean(Count),
+    sd = sd(Count),
+    sum = sum(Count),
+    .groups = 'drop'
+  ) %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Crime Recategorization Key**')
+    ) %>% 
+  cols_label(
+    Crime.Category = md('**New Category**'),
+    Highest.Offense.Description = md('**Original Description**'),
+    mean = md('**Mean Occurrence Across Years**'),
+    sd = md('**Standard Deviation of Yearly Occurrence**'),
+    sum = md('**Total Occurrences**')
+  ) %>% 
+  fmt_number(columns = mean:sd, decimals = 1) %>% 
+  opt_interactive()
+
+gtsave(RecatTable, 'recat-table.html', here('HYLTIN-PII-project','results', 'figures', 'html-widgets'))
+#saveWidget(frameableWidget(RecatTable), here('HYLTIN-PII-project','results', 'figures', 'html-widgets', 'recat-table.html'))
+RecatTable
+```
+
+Plot highlights the advantages in the categorization, with inclusion of sparklines for clarity on movement over time.
+```{r}
+newCatTable <- d1 %>%
+  filter(year(Occurred.Date) < 2024) %>% 
+  mutate(
+  Occur.Years = trunc.Date(Occurred.Date, 'years')
+  ) %>% 
+  group_by(Crime.Category, Occur.Years) %>% 
+  summarize(
+    Count = n(),
+    .groups = 'drop'
+  ) %>% 
+  arrange(by = Occur.Years) %>%
+  group_by(Crime.Category) %>% 
+  summarize(
+    mean = mean(Count),
+    sd = sd(Count),
+    list = list(Count),
+    .groups = 'drop'
+  ) %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Crime Categories Over Time**')
+    ) %>% 
+  cols_label(
+    Crime.Category = md('**Crime Category**'),
+    mean = md('**Mean Occurrence Across Years**'),
+    sd = md('**Standard Deviation of Yearly Occurrence**'),
+    list = md('**Change Over Time**')
+  ) %>% 
+  fmt_number(columns = mean:sd, decimals = 1) %>% 
+  gtExtras::gt_plt_sparkline(column = list, type = 'ref_iqr', same_limit = FALSE) %>% 
+  tab_footnote('Note: Sparklines have independent axes, comparisons should not be considered across different categories')
+gtsave(newCatTable, 'new-cat-table.html', here('HYLTIN-PII-project','results', 'figures', 'html-widgets'))
+newCatTable
+
+```
+

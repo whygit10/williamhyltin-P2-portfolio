@@ -1,0 +1,417 @@
+---
+title: "Crime in Austin Texas: Exploration, Classification, and Trends"
+subtitle: ""
+author: William Hyltin
+date: "`r Sys.Date()`"
+format:
+  html:
+    embed-resources: true
+    code-fold: true
+editor: 
+  markdown: 
+    wrap: sentence
+bibliography: ../../assets/dataanalysis-references.bib
+csl: ../../assets/data-in-brief.csl
+---
+
+```{r Setup, echo=FALSE, message=FALSE}
+# load a few R packages
+pacman::p_load(here, knitr, tidyverse, skimr, htmlwidgets, htmltools, plotly, tigris, gt, gtExtras)
+theme_set(theme_minimal())
+```
+
+```{r Load Processed Data and Figures, message = FALSE, warning = FALSE}
+d1 <- readRDS(here('HYLTIN-PII-project','data','processed-data','processed-crime.rds'))
+tig_zips <- zctas(cb=TRUE, starts_with = c(unique(d1$Zip.Code)), year = 2020, progress_bar = FALSE)
+
+catYearly <- d1 %>% mutate(
+  years = year(Occurred.Date)
+  #years = as.character(years)
+  ) %>% filter(years != 2024) %>% 
+  group_by(Crime.Category, years) %>% 
+  summarize(crim.count  = n()) %>% 
+  ungroup() %>% 
+  as.data.frame()
+
+allYrsCats <- expand.grid(years = unique(catYearly$years), Crime.Category = unique(catYearly$Crime.Category))
+
+yearlyAllCats <- left_join(allYrsCats, catYearly, by = join_by(Crime.Category, years))  %>% 
+  mutate(crim.count = ifelse(is.na(crim.count), 0, crim.count))
+
+fig <- plot_ly(yearlyAllCats,
+  x = ~crim.count,
+  y = ~fct_reorder(Crime.Category, crim.count),
+  type = 'bar',
+  showlegend = F,
+  frame = ~years,
+  marker = list(color = '#000067')
+)
+
+catbarly <- fig %>% 
+  layout(
+    yaxis = list(
+      title = '', tickangle = -30, tickfont = list(size = 8)
+      ), 
+    xaxis = list(
+      title = 'Count of Occurence' 
+    ),
+    title = list(
+      text = 'Yearly Occurence of Crime by Category',
+      y = 0.99, x = 0.1, xanchor = 'left', yanchor = 'top',
+      font = list(
+        size = 18
+      )
+      )
+    )
+
+yearlyCrime <- d1 %>% mutate(
+  Zip.Char = as.character(Zip.Code),
+  years = year(Occurred.Date),
+  years = as.character(years)
+  ) %>% filter(years != 2024) %>% 
+  group_by(Zip.Char, years) %>% 
+  summarize(crim.count  = n()) %>% 
+  ungroup() %>% 
+  as.data.frame()
+  #filter(count >= 500) %>%
+  #filter(Zip.Char == '78741') %>%
+  
+
+allYrsZips <- expand.grid(years = unique(yearlyCrime$years), Zip.Char = unique(yearlyCrime$Zip.Char))
+
+yearlyCrimeAll <- left_join(allYrsZips, yearlyCrime, by = join_by(Zip.Char, years))  %>% 
+  inner_join(tig_zips, by = join_by(Zip.Char == ZCTA5CE20)) %>% 
+  mutate(crim.count = ifelse(is.na(crim.count), 0, crim.count))
+  
+cpeth <- yearlyCrimeAll %>% filter(crim.count >= 50) %>% 
+  ggplot() +
+  geom_sf(aes(geometry = geometry, fill = crim.count, frame = years, text = paste(Zip.Char, '<br>', crim.count))) +
+  scale_fill_gradient2(low = "#E0144C", mid = '#FFFFFF', high = "#000067", midpoint = -5000, 
+                       trans = 'reverse') +
+  theme_classic() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        line = element_blank(),
+        plot.title = element_text(hjust = 0, size = 15)) +
+  labs(fill = 'Crime Count',
+       title = 'Crime by Location Over Time')
+
+cplotly <- cpeth %>% ggplotly() %>% 
+  layout(hoverlabel = text) %>% 
+  animation_opts(1500, 1) %>% 
+  animation_slider(currentvalue = list(visible = FALSE)) %>% 
+  animation_button(x = 0, xanchor = "left", y = 0, yanchor = "bottom")
+
+RecatTable <- d1 %>% 
+  filter(year(Occurred.Date) < 2024) %>% 
+  mutate(
+  Occur.Years = trunc.Date(Occurred.Date, 'years')
+  ) %>% 
+  group_by(Crime.Category, Highest.Offense.Description, Occur.Years) %>% 
+  summarize(
+    Count = n(),
+    .groups = 'drop'
+  ) %>% 
+  arrange(by = Occur.Years) %>%
+  group_by(Crime.Category, Highest.Offense.Description) %>% 
+  summarize(
+    mean = mean(Count),
+    sd = sd(Count),
+    sum = sum(Count),
+    .groups = 'drop'
+  ) %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Crime Recategorization Key**')
+    ) %>% 
+  cols_label(
+    Crime.Category = md('**New Category**'),
+    Highest.Offense.Description = md('**Original Description**'),
+    mean = md('**Mean Occurrence Across Years**'),
+    sd = md('**Standard Deviation of Yearly Occurrence**'),
+    sum = md('**Total Occurrences**')
+  ) %>% 
+  fmt_number(columns = mean:sd, decimals = 1) %>% 
+  opt_interactive()
+```
+
+# Introduction
+
+## General Background Information
+
+[Last year](https://www.fox7austin.com/news/austin-named-city-with-15th-biggest-homicide-rate-problem-study), Austin was ranked among the top US cities with a problem in homicide rate [@fox2023].
+Earlier [this year](https://www.kvue.com/article/news/local/austin-crime-rate-drops-2024-2020-comparison/269-b62042b7-a6f2-4224-87ff-ede655a37912), the claim was made that crime has dropped to a new low since 2020 [@fox2024].
+The intention of this analysis will be to investigate both claims, and gain a better understanding of Austin's criminal activity.
+While these claims will be in mind throughout the steps of the analysis, I intend to approach it from more of an exploratory standpoint, so not to only go out and investigate the claims but really any insights that can be gleaned around Austin criminal activity and how it has changed over time.
+What the analysis will not cover would be things like *causes* of the changes in crime, at least not directly.
+I may identify shifts that could inform the cause, but the goal will not be to drill down into every potential socioeconomic factor and pick the primary drivers, instead simply to observe what crime in the city of Austin looks like and what we might be able to expect going forward.
+Aside from resources outlined in our course resources, I will also draw from this [book](https://otexts.com/fpp3/) [@hyndman2021].
+The final output of this project, the manuscript you are reading, is rendered in my github analytics [portfolio](https://whygit10.github.io/williamhyltin-P2-portfolio/). The original repo dedicated to just this project can be found [here](https://github.com/whygit10/HYLTIN-PII-project).
+
+## Description of data and data source
+
+My primary data source will come from [here](https://data.austintexas.gov/Public-Safety/Crime-Reports/fdj4-gpfu/about_data).
+The data is updated weekly by the Austin Police Department, and each record in the dataset represents an Incident Report, with the highest offense within an incident taking precedence in things like the description and categorization Each Incident can have other offense tied to it, however since each record is a unique incident then only the aforementioned Higehest Offense is the one represented (NOTE: At the time of this writing, 7/31/2024, the dataset has been taken down to be [replaced](https://data.austintexas.gov/Public-Safety/NIBRS-Group-A-Offense-Crimes/i7fg-wrk5/about_data) with one that aligns more closely with the FBI National Incident Based Reporting System. The datasets are not one-to-one, so reproducibility would require more than a lift and shift, however some of the methods could still be employed).\
+The raw data is represented by several categorical, location, and time-based variables, many of which have missing values, or are formatted incorrectly for the data type, so they will need to be cleaned or recoded.
+After cleaning the data (done in a separate file found in this repo) we can take a look a more meaningful look.
+
+```{r Quick Summaries}
+skim(d1)
+```
+
+I preserved quite a few variables from the original dataset, but the primary ones of interest will be `Occurred.Date.Time`, `Zip.Code`, `Highest.Offense.Description`, `Category.Description`, and `Crime.Category`.
+The last few variables pertaining to the type of crime committed are really all rolled into the last one, `Crime.Category` for the purposes of this analysis.
+Crime Category is a derived field that categorizes crimes into several different categories for the sake of understanding what crime occurred but without getting flooded with minute details.
+The categorizations were done manually by myself, and can be seen in the processing file as well as a description of the method performed.
+The short version is the categories are based on the UCR Crime descriptions given by the FBI when available, and are bucketed similarly from the Highest Offense field via string detection.
+This brings the number of unique categories in the Highest Offense field from 436 to 32 in the derived field.
+
+## Questions/Hypotheses to be addressed
+
+Ultimately, I would like to explore a few questions:  
+
+1. Has crime truly dropped, or is it expected to rise again as the year progresses?
+2. Has the homicide rate dropped with crime?
+3. Has the homicide rate been a problem for long time, or was it truly an emerging problem last year?
+
+## Schematic of workflow
+
+The intention of this analysis is to be exploratory; while I do have some questions I would like to chase down, I intend for them to be more of a compass than a map.
+With that said, the general strategy taken can be boiled down as follows:  
+
+1. Check for data quality, understand data representation 
+2. Clean the data, address problems identified in previous step, some exploration 
+3. More "formal" exploration. Consider what variables might be most important, and how those variables can be represented in the analysis.
+4. Repeat any steps performed above as necessary.
+5. Resolve remaining or initial questions using statistical methods.
+
+# Methods
+
+\
+To accomplish the steps described above, a number of techniques and methodologies were employed.
+
+-   **Cleaning**: The data had a number of string variables for date fields, so converting these to proper date variables was necessary.
+    Several variables had missing or empty values.
+    Most of these records were removed, since they represented less than 1% of the data, and were often related to the seriousness of some crimes (like FBI descriptions and categorizations).
+
+-   **Imputing**: A few variables had the opportunity to impute the data logically.
+    For example, there were some records with a report date but no occurrence date.
+    By nature of the variable definitions, the occurrence date should always be less than or equal to the report date, so in instances when the occurrence time was missing but the report time was available, I imputed the occurrence date with the report date.
+    One could consider this a change in the definition of the variable, something like "the latest time the crime could have occurred," but for the purposes of this analysis that would suffice.
+
+-   **Transformations/ Derived Variables**: The descriptions of the offenses were difficult to do much with simply because there were so many different types.
+    As a result, I ultimately decided to go through and bucket the different types of crimes by their description, by using a combination of other categorical variables when they were available and string detection to effectively create a lexicon that would categorize the variables.
+
+-   **Exploratory Analysis**: The exploratory analysis done was very iterative, first focused the data quality, so a lot of filter, transforming, and summarizing the variables discussed above with basic summary and dplyer functions.
+    After cleaning visualizations like bar charts, choropleth charts, and line graphs were used to understand patterns in the data, largely done with ggplot and plotly.
+    After statistical analysis was performed, more visualizations in the form of line graphs with forecasts and error ranges.
+
+-   **Statistical Analysis**: Primary statistical analysis performed was in the form of a hierarchical ARIMA forecast.
+    Exponential Smoothing was also briefly considered, as well as a non-hierarchical ARIMA method.
+    Primary methods to perform these forecasts were with the fable and forecast package.
+    The forecasts were produced using material from the the book Forecasting Principals and Practice (3rd Edition) [@hyndman2021].
+
+# Results
+
+This analysis focuses on three simple factors when it comes to the occurrence of crime: "when", "where", and "what".
+Quickly summarizing the results we see the following.\
+Starting with "When", we see that in recent years crime is generally decreasing and has been since around 2008.
+Year over year rates of homicide have been generally increasing in the years leading up to 2020.
+The claim made in the previously mentioned news article is that they are decreasing, and the time series plot arguably corroborates this[@fox2024].
+Still, the claim is worth investigating to see if the decreases are cyclical, seasonal, or just coincidence.
+Location variables are also provided in the data, so it is worth exploring the "where" that the crimes are occurring.
+Since zip code information was provided, and is a very simple location variable that people are familiar with, that seems like an easy place to start.
+We will see that crime is most common in a few zip codes in the center of the city, and that over time crime in those areas does appear to be decreasing, while the outer areas are relatively constant in the occurrence of crime.\
+Finally, the "what" is important simply because we can't celebrate decreases in crime if it's at the cost of more severe crime happening.
+We will isolate to homicide specifically, and observe the trends over time, then using data from 2003 through 2023 we will attempted to predict the month over month occurrence of homicide in 2024, to see how the data stacks up to what is actually happening.
+We ultimately fit a Hierarchical Seasonal ARIMA model, isolate to instances of Murder, and see that in the first few months of 2024, there may be a decrease in the rate of homicide compared to what was expected.
+
+## Exploratory/Descriptive analysis
+
+\
+A time series plot is a very natural starting part for the exploration of this analysis.
+given that the data is at the incident level, it is worth the effort to aggregate the count of occurrences up to some interval of time.
+We have values of all the way down to reported time of occurrence, but given the imputations that needed to occur in the data cleaning step, as well as the questionable reliability of whether the reported occurrence time is accurate to begin with, daily seems like the smallest interval of time that could be worth aggregating over.
+Figure 1 below is the corresponding aggregated time series plot.
+While we can see a general trend, the plot is rather dense since there are so many points plotted along the x-axis.
+If we want to do anything like isolating down to specific crimes like homicide, we will needed to aggregate at less fine of a grain, otherwise we will have too many intervals with 0 values for the observations.
+
+```{r}
+#| label: fig-1
+#| fig-cap: "Crime Forecast Residual Plots"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"crime-by-day.png"))
+```
+
+Figure 2 below is the corresponding time series plot aggregated over each month.
+We still see a similar rise and fall trend like we did in the daily plot, but it is more pronounced since there are fewer outliers like there were in the daily plot.
+Outside of the overall trend, we can also see some potential patterns like a seasonal trend, and a change in the overall trend around 2018 until around 2020 where it briefly increases again before returning to a general decrease.  
+
+```{r}
+#| label: fig-2
+#| fig-cap: "Crime Forecast Residual Plots"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"crime-by-month.png"))
+```
+
+Jumping ahead just a bit, after performing the simple lexicon based classification and properly identifying murder crimes, we can isolate to those crimes specifically for a time series plot. Figure 3 is exactly this, and we can see the trend is very different from what is seen in the overall time-series plot. For the most part, the rate of murder is relatively low up through 2015, and it is around 2016 that we see it spike and then slowly increase up until about 2022, where it then starts to slow back down.  
+
+```{r}
+#| label: fig-3
+#| fig-cap: "Monthly Murder Line Plot"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"murder-by-time.png"))
+```
+
+These changes are interesting, primarily because we see the same shift before 2020 across overall crime and murder, but the number of murders is too small to be the primary driver in the overall crime trend. It's also interesting because of the way the increase in murders start happening before the overall increase, and continues after the overall has started to decrease again. These may be caused by correlated factors like population, economic, or political factors, that the rate of murder could be more sensitive to than other crimes are. Furthermore, because the rate of murder is so low (relative to other types of crime), it's likely that the variance in the trend is always going to be more sensitive to external factors. Once again the goal of this analysis is not intended to explain the why, but I think these observations could make for some good future studies into the potential causes or correlations. For now, the main question that these visuals bring me are the apparent trends; are they actually material, is the decrease seen the result of a change in the actual rate, or merely happenstance and we can expect the rate of murder to increase in future months? Before I attempt to explore this question, I want to see what variables might help me to explain it. The last chart considers the type of crime, which we will see in a moment, but it does not consider the location. For location, I have created a visualization based on Zip Code that I think can be revealing.
+
+```{r}
+cplotly
+```
+
+\
+The interactive plot above shows us the number of crimes that occurred each year within each zip code, with the number of crimes represented by the continuous color scale, and the years represented by the animation so that values will change as the animation plays.
+We can see the overall decrease in crime from the way the Zip Codes that are more red slowly start to shift to blue or white.
+The zip codes that are more blue to start with don't seem to change much as the animation plays.
+This suggests that the bulk of the crime is isolated to a handful of locations, and either factors that typically lead to crime are becoming less relevant in those areas, or the areas with heavier crime are seeing a greater focus in terms of prevention.
+This visualization is great, but with the analysis being more geared for a focus on Murder, it is unlikely to be of much help.
+There are probably Zip Codes where murder is more likely to occur, but the lower quantities would make it difficult to use that as a method to predict the number of murders that will happen in an interval of time small enough to have enough observations to make such a prediction in the first place.
+This chart does leave some questions that would be good for a future study, namely what has changed in those Zip Codes that are decreasing?
+Are there specific crimes that we are seeing fewer occurrences of, or is there better prevention in those areas?\
+The exploration has considered time and location as a variable, but the type of crime is still largely unexplored.
+The raw data, as stated before, has 434 different descriptions for the highest offense in each incident that was committed over the time period observed.
+The number of these descriptions makes it difficult to do anything with as a category, but coupled with other variables in the datset like the UCR Category may help us understand a better categorical representation.
+To accomplish this, crime that already had a UCR description for the observation was assigned this description as its category.
+A general description of each of these and several others can be found [here](https://ucr.fbi.gov/crime-in-the-u.s/2019/crime-in-the-u.s.-2019/topic-pages/offense-definitions)[@fbi2019].
+Observations in this dataset were given a UCR Category code when they were considered a more serious crime identified by the FBI (this was given in the data dictionary that came with the data. The data dictionary is no longer available since the dataset was removed, but can be found in the repo for this analysis on github in the assets folder, or from the processing file directly since I have it copied there).
+Because there were many observations that were not given a category in the variable field, a lexicon was built by observing each individual Offense descriptions to find a way to group each offense description into a smaller categorical variable.
+Make no mistake, this categorization is not official categorization of the crimes themselves, nor is it intended to be a one for one match to any other categorization used by either APD or the FBI.
+However, it can be interpreted as one person's layman's terms attempt at categorizing these offenses.
+Essentially, how might an average person who does not regularly encounter law enforcement or crime think of each of these offenses?
+With that in mind, after observing each of the Highest Offense description, key words and phrases were identified that could capture either unique or similar (when possible) descriptions of the crimes, then string detection and regular expressions were used to identify observations with those descripions and then group them into a category of other similar offenses.
+We can see exactly how each offense description was grouped in the table below.
+
+```{r}
+RecatTable
+```
+
+\
+The total count, yearly mean, and yearly standard deviation of occurrences of the offenses is provided to illustrate the disparity of the frequency of several of the offense descriptions.
+This is not entirely resolved by the New Category, but it does help for many of them.
+Again, the new categories are meant to generalize the descriptions.
+Page 21 of the table above contains the descriptions that I categorized as murder.
+A good example of how this method is imperfect is there, because of the presence of manslaughter.
+My initial thought process was to group instances of manslaughter into its own category, which is ultimately where I would have put Justified Homicide as well, however there were occurrences of manslaughter that were already categorized as murder by the UCR categorization, so bringing in those to the murder category would leave Justified Homicide in its own category, despite being a crime with a relatively low rate of occurrence.
+Ultimately this turned out to be the right call, because the FBI UCR website referenced earlier states that the "program classifies justifiable homicides separately,"[@fbi2019] but for other cases not explicitly stated on this or other sites I may have just gotten it wrong judging by my first instinct.
+All said, a more summarized version of this chart is below, complete with sparklines as well to give an idea of the rate over time of each category.
+
+```{=html}
+<iframe src="../../results/figures/html-widgets/new-cat-table.html" width="100%" height="800px" align="centered"></iframe>
+```
+\
+This table is intended to give a general idea of the change of each crime over time and the general quantity relative to others.
+We can again see that our specific crime of focus, Murder, is lower than many other types, but is far from the lowest and still has a quantifiable rate.
+The sparklines don't do the difference between crimes justice, because there are several that have a far greater rate of occurrence than others, but we can visualize this and the year over year change with the chart below.
+
+```{r}
+catbarly
+```
+
+\
+Again, the rate of murder is generally so low that it is dwarfed by the occurrences of most other crimes (particularly theft).
+We can see the bar chart peak out towards the end in 2021 and beyond, which is exactly what we expect.
+Overall, the rate of murder is so low compared to others that we may not be able to give it the same treatment as others, but begs the question if the rate of crime as a whole could somehow be used to help us predict each individual type of crime.
+We will use this idea during the Forecasting steps described below.
+
+## Time Series and Forecasting
+
+\
+To determine if the recent decreases seen in crime overall and murder are coincidence or not, we need to establish what our expectation is.
+There are many ways we could do this, but a forecast seems the best, given the time series nature of our data.
+A few different time series models were attempted, like ARIMA and Exponential Smoothing, but the confidence interval for these was too wide for any group to make any reasonable inference with.
+However, utilizing the Fable package, a top-down hierarchical Seasonal ARIMA model is fit to the data and gives us a much more reasonable fit, both for the aggregated level and for the individual crime level for Murder.
+To fit the model the specific model, automatic model selection in the fable package was utilized while reconciling with a top-down hierarchical method.
+The selected model for the aggregate level is an ARIMA(0,1,2)(2,1,1)~12~.
+We can see from the residual plots for All Crime that the fit is generally fair.
+Innovation residuals are mostly centered around 0, the ACF plot suggests no autocorrelation, and even the distribution of the residuals is pretty normal, though there is a high frequency at 0 and just below 0 that may be questionable.
+The Ljung-Box test was not found to be significant, meaning we can reject the null hypothesis that the residuals are distinguishable from white noise agreeing with our observations from the ACF plot.
+The most questionable aspect here is likely the heteroscedasticity of the residuals, which appears to decrease and then increase over time, but this is not a requirement for a good time series model.
+
+```{r}
+#| label: fig-4
+#| fig-cap: "Crime Forecast Residual Plots"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"crime-resid.png"))
+```
+
+```{=html}
+<iframe src="../../results/figures/static-plots/aggregated-ljung.html" width="390" height="160px" align="centered"></iframe>
+```
+\
+It is not quite the same story regarding the residuals for murder.
+The selected model for the frequency of murder is ARIMA(0,1,1)(0,0,1)~12~.
+The plot of the residuals over time is still mostly centered at zero but the variance is less steady than it was for all crime, increasing quite a bit in the last few years, which makes sense since that is when we started to see the rate of Murder increase.
+Two spikes in the ACF plot are found to be significant, but this is not terribly abormal since 24 spikes are plotted, and the Ljung-Box test results are also not found to be significant.
+The distribution of the residuals is the most questionable, it is fairly asymmetrical so it is unlikely to be normally distributed, but again this is less important than the requirements for uncorrelated and mean 0 residuals.
+
+```{r}
+#| label: fig-5
+#| fig-cap: "Murder Forecast Residual Plots"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"murd-resid.png"))
+```
+
+```{=html}
+<iframe src="../../results/figures/static-plots/murder-ljung.html" width="390px" height="160px" align="centered"></iframe>
+```
+\
+The plots below show these forecasts, the aggregation all crime and for murder, as well as two other crimes picked for their similarity to murder, Aggregated Assault and Unlawful Restraint (kidnapping and similar crimes).
+Aggravated Assault was chosen due to its similarity in how the crime is performed, and Unlawful Restraint was chosen due to the number of occurrences being similar to Murder.
+The plot for Murder is repeated enlarged for readability.
+
+```{r}
+#| label: fig-6
+#| fig-cap: "Monthly Crime Forecast"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"crime-forecast.png"))
+```
+
+```{r}
+#| label: fig-7
+#| fig-cap: "Murder Forecast"
+#| echo: FALSE
+knitr::include_graphics(here('HYLTIN-PII-project',"results","figures",'static-plots',"murder-forecast.png"))
+```
+
+From these forecasts, we can see that for overall crime the decrease observed earlier is expected to continue, however the confidence interval is quite wide so it could just as easily change course and begin to increase
+. For Murder, the decrease after the observed period is much less pronounced, but the confidence interval is much smaller
+. The difference in confidence interval is likely due to the smaller magnitude of crime counts compared to the aggregated model, and in this case the bounds are often not enough for more than one integer value between
+. That's somewhat problematic early on, because it means the forecast is truly only predicting one value since it is a count, but it matters very little since the last value is well outside of any of the confidence bounds
+. The table below shows the point estimates of the forecast versus the exact value, and we can see that the the estimates were not terribly bad except for March, where we see the large dip in the plot
+. It is worth noting that April and May were not plotted since the article that spawned the question at the heart of this analysis was only observing the count of murders through the first quarter of the year
+.
+
+```{=html}
+<iframe src="../../results/figures/static-plots/actual-vs-forecast.html" width="290" height="330" align="centered"></iframe>
+```
+## Interpretation and Conlusions
+
+\
+The findings in the analysis are somewhat inconclusive, though they were really intended to be exploratory.
+There are some clear trends in crime rate over time, and forecasting methods do not look to be beyond the realm of possibility but should should certainly be taken with a grain of salt.
+There was a drop in the count of Murders in the first quarter, primarily due to a drop in the month of March.
+The forecast suggested it was expected to be higher, but we are talking about a difference of 2.7 actual vs forecast.
+The counts of murder are so low that there is bound to be error, and if not it would likely be due confidence intervals so wide they would be almost meaningless.
+with that in mind, the table above suggests that we have 5 fewer murders in the first 5 months of 2024 than expected, so cautious optimism may be warranted.\
+The model itself is certainly not perfect, and perhaps future analyses could explore ways to improve the predictability.
+Hierarchical time series models can have multiple levels in their hierarchy, so it's not impossible that other variables could have been combined with the category to improve results.
+Other crimes may also be more worthwhile in predicting; theft as an example dwarfed all other crimes and may very well be the biggest opportunity for the city of Austin.
+Models built on other higher frequency crimes can also likely make better use of location variables as well.
+More recent crime reporting data on the Austin data portal site have different methods of classification, and include individual charges with each incident, so it seems that they would be ripe for new variables to be implemented.
+Socio-economic variable could also potentially be used to see the impacts that they have on the rates of crime as whole or certain specific crimes.
+Comparisons with other cities would also be interesting, especially those with similarities to Austin to see how individual differences could lead to changes in the city's environment.
+These are all ideas I could see myself returning to this analyses for, and I hope this analyses can provide myself or anyone else some inspiration for a more detailed analysis.
+
+# References

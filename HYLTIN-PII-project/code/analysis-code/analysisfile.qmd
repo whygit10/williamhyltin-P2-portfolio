@@ -1,0 +1,224 @@
+---
+title: "Analysis"
+author: "William Hyltin"
+date: today
+output: html_document
+editor: 
+  markdown: 
+    wrap: sentence
+---
+
+# Setup
+
+```{r setup}
+#load needed packages. make sure they are installed.
+pacman::p_load(here, knitr, tidyverse, skimr, fpp3, urca, forecast, gt)
+theme_set(theme_minimal())
+```
+
+```{r}
+d1 <- readRDS(here('HYLTIN-PII-project','data','processed-data','processed-crime.rds'))
+```
+
+```{r sandbox}
+
+d1 %>% mutate(Category.Description = if_else(Category.Description == '', 'NA/Unknown', Category.Description)) %>% group_by(Category.Description, Highest.Offense.Description) %>% summarize(cnt = n()) %>% pivot_wider(names_from = Category.Description, values_from = cnt)
+
+temp <- d1 %>%
+         mutate(Occurred.Date = trunc.Date(Occurred.Date, 'months')) %>% 
+         group_by(Occurred.Date) %>% 
+         summarize(
+             cnt = n()
+         ) %>% as.data.frame() %>% 
+  filter(year(Occurred.Date) != 2024)
+rownames(temp) <- temp$Occurred.Date
+temp <- temp %>% select(cnt)
+
+temp2 <- temp %>% as.ts()
+Acf(temp2)
+Box.test(temp2, lag = 12, type = 'Ljung-Box')
+auto.arima(temp2)
+auto.arima(temp2) %>% forecast(h=24) %>% autoplot()
+#temp2 %>% log() %>% diff(12) %>% diff() %>% diff() %>% diff() %>% diff() %>% diff() %>% Acf()
+```
+
+```{r}
+temp3 <- d1 %>%
+         filter(Crime.Category == 'MURDER') %>% 
+         mutate(Occurred.Date = trunc.Date(Occurred.Date, 'months')) %>% 
+         group_by(Occurred.Date) %>% 
+         summarize(
+             cnt = n()
+         ) %>% as.data.frame() %>% 
+  filter(year(Occurred.Date) < 2024)
+rownames(temp3) <- temp3$Occurred.Date
+temp3 <- temp3 %>% select(cnt)
+
+temp5 <- temp3 %>% as.ts()
+Acf(temp5)
+auto.arima(log(temp5))
+Box.test(diff(log(temp5)), lag = 4, type = 'Ljung-Box')
+temp5 %>% log() %>% diff() %>% ur.kpss() %>% summary()
+
+temp5 %>% log() %>% diff() %>% Acf()
+temp5 %>% log() %>% diff() %>% plot()
+```
+
+```{r}
+fit <- Arima(temp5, order = c(0,1,1))
+autoplot(forecast(fit, h=24))
+fit2 <- Arima(log(temp5), order = c(0,1,1))
+autoplot(forecast(fit2, h=24))
+```
+
+```{r}
+fets <- function(x, h) {
+  forecast(ets(x), h=h)
+}
+farima <- function(x, h) {
+  forecast(auto.arima(x), h=h)
+}
+
+e1 <- tsCV(log(temp5), fets, h=1)
+e2 <- tsCV(log(temp5), farima, h=1)
+
+# MSE comparisons
+mean(e1^2, na.rm=TRUE)
+mean(e2^2, na.rm=TRUE)
+```
+
+```{r}
+crime_agg <- d1 %>%
+  filter(Occurred.Date <= '2024-03-31') %>% 
+  mutate(Occurred.Date = yearmonth(Occurred.Date)) %>% 
+  group_by(Occurred.Date, Crime.Category) %>% 
+  summarize(
+     cnt = n()
+  ) %>% as.data.frame() %>% 
+  as_tsibble(key = Crime.Category, index = Occurred.Date) %>% 
+  aggregate_key(Crime.Category, Count = sum(cnt)) %>% 
+  fill_gaps(Count = 0) 
+
+group_fit <- crime_agg %>% 
+  filter(year(Occurred.Date) < 2024) %>%
+  model(base = ARIMA(Count)) %>% 
+  reconcile(
+    td = top_down(base)
+  )
+
+group_fit
+
+group_fcast <- group_fit %>% 
+  forecast(h = '2 years') 
+
+grpPlot <- group_fcast %>% 
+  filter(Crime.Category %in% c('MURDER', 'AGGRAVATED ASSAULT', 'UNLAWFUL RESTRAINT' )| is_aggregated(Crime.Category), .model == 'td') %>% 
+  autoplot(
+    crime_agg %>% filter(year(Occurred.Date) >= 2019)#, Crime.Category == 'MURDER')
+  ) + facet_wrap(vars(Crime.Category), scales = 'free_y',
+                 labeller = labeller(
+                   Crime.Category = c('<aggregated>' = 'All Crime', 
+                                      'AGGRAVATED ASSAULT' = 'Aggravated Assault', 
+                                      'MURDER' = 'Murder', 
+                                      'UNLAWFUL RESTRAINT' = 'Unlawful Restraint')
+                   )
+                 ) +
+  labs(x = 'Month', y = 'Count', title = 'Grouped Forecasts of Crime Occurence by Month') +
+  theme(panel.background = element_rect(fill = 'white',
+                                        color = 'white'),
+        plot.background = element_rect(fill = 'white',
+                                        color = 'white')
+        )
+
+murdplot <- group_fcast %>% 
+  filter(Crime.Category %in% c('MURDER'), .model == 'td') %>% 
+  autoplot(
+    crime_agg %>% filter(year(Occurred.Date) >= 2019, Crime.Category == 'MURDER')
+  ) +
+  labs(x = 'Month', y = 'Count', title = 'Murder Forecasts by Month') +
+  theme(panel.background = element_rect(fill = 'white',
+                                        color = 'white'),
+        plot.background = element_rect(fill = 'white',
+                                        color = 'white')
+        )
+
+
+grpPlot  
+murdplot
+
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'crime-forecast.png'), grpPlot)
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'murder-forecast.png'), murdplot)
+```
+```{r}
+crime_agg %>% 
+    filter(year(Occurred.Date) < 2024,Crime.Category == 'MURDER') %>%
+    model(base = ARIMA(Count))
+
+crime_agg %>% 
+    filter(year(Occurred.Date) < 2024,Crime.Category == 'MURDER') %>%
+    model(base = ARIMA(Count)) %>% forecast(h = '2 years') %>% 
+  autoplot(crime_agg %>% filter(year(Occurred.Date) >= 2019, Crime.Category == 'MURDER'))
+```
+
+
+```{r}
+AvF <- d1 %>% 
+  filter(year(Occurred.Date) == 2024, Crime.Category == 'MURDER') %>% 
+  mutate(
+    Occurred.Date = yearmonth(Occurred.Date)
+    ) %>% 
+  group_by(Occurred.Date) %>% 
+  summarize(
+    n = n()
+    ) %>% left_join(filter(group_fcast, Crime.Category == 'MURDER' & .model == 'td'), join_by(Occurred.Date == Occurred.Date)) %>% 
+  select(Occurred.Date, n, .mean) %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Forecast vs Actual<br>Murder Count**')
+    ) %>% 
+  cols_label(
+    Occurred.Date = md('**Month**'),
+    n = md('**Actual**'),
+    .mean = md('**Forecasted**')
+  ) %>% 
+  fmt_number(columns = .mean, decimals = 1)
+
+AvF
+
+gtsave(AvF, 'actual-vs-forecast.html', here('HYLTIN-PII-project','results', 'figures', 'static-plots'))
+```
+
+```{r}
+theme_set(theme_gray())
+aggresid <- group_fit %>% filter(is_aggregated(Crime.Category)) %>% select(td) %>% gg_tsresiduals()
+
+aggresid
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'crime-resid.png'), aggresid)
+```
+
+```{r}
+theme_set(theme_gray())
+murdresid <- group_fit %>% filter(Crime.Category == 'MURDER') %>% select(td) %>% gg_tsresiduals()
+
+murdresid
+ggsave(here('HYLTIN-PII-project','results', 'figures', 'static-plots', 'murd-resid.png'), murdresid)
+```
+
+```{r}
+theme_set(theme_minimal())
+agglb <- augment(filter(group_fit, is_aggregated(Crime.Category))) %>% 
+  features(.resid, ljung_box, l = 24) %>% gt()
+
+agglb
+gtsave(agglb, 'aggregated-ljung.html', here('HYLTIN-PII-project','results', 'figures', 'static-plots'))
+```
+
+```{r}
+theme_set(theme_minimal())
+murdlb <- augment(filter(group_fit, Crime.Category == 'MURDER')) %>% 
+  features(.resid, ljung_box, l = 24) %>% gt()
+
+murdlb
+gtsave(murdlb, 'murder-ljung.html', here('HYLTIN-PII-project','results', 'figures', 'static-plots'))
+```
+
