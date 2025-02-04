@@ -22,7 +22,7 @@ theme_set(theme_minimal())
 
 ```{r Load Processed Data and Figures, message = FALSE, warning = FALSE}
 d1 <- readRDS(here('HYLTIN-PII-project','data','processed-data','processed-crime.rds'))
-tig_zips <- zctas(cb=TRUE, starts_with = c(unique(d1$Zip.Code)), year = 2020, progress_bar = FALSE)
+tig_zips <- zctas(cb=FALSE, starts_with = c(unique(d1$Zip.Code)), year = 2020, progress_bar = FALSE)
 
 catYearly <- d1 %>% mutate(
   years = year(Occurred.Date)

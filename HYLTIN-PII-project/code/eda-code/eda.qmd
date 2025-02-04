@@ -20,7 +20,7 @@ Load the data.
 
 ```{r}
 d1 <- readRDS(here('HYLTIN-PII-project','data','processed-data','processed-crime.rds'))
-tig_zips <- zctas(cb=TRUE, starts_with = c(unique(d1$Zip.Code)), year = 2020)
+tig_zips <- zctas(cb=FALSE, starts_with = c(unique(d1$Zip.Code)), year = 2020)
 ```
 
 

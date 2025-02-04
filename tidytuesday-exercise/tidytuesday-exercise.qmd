@@ -10,14 +10,22 @@ We start by loading the dataset.
 pacman::p_load(tidyverse, here, tidytuesdayR, tidymodels, parsnip, skimr, viridis, caret, recipes, workflows, yardstick, kknn, earth, vip)
 
 #code below is taken from the tidy tuesday github
-tuesdata <- tidytuesdayR::tt_load('2024-07-23')
+#tuesdata <- tidytuesdayR::tt_load('2024-07-23')
 
-auditions <- tuesdata$auditions
-eliminations <- tuesdata$eliminations
-finalists <- tuesdata$finalists
-ratings <- tuesdata$ratings
-seasons <- tuesdata$seasons
-songs <- tuesdata$songs
+#auditions <- tuesdata$auditions
+#eliminations <- tuesdata$eliminations
+#finalists <- tuesdata$finalists
+#ratings <- tuesdata$ratings
+#seasons <- tuesdata$seasons
+#songs <- tuesdata$songs
+
+# Clean data provided by <https://github.com/kkakey/American_Idol>. No cleaning was necessary.
+auditions <- readr::read_csv("https://raw.githubusercontent.com/kkakey/American_Idol/main/metadata/auditions.csv")
+eliminations <- readr::read_csv("https://raw.githubusercontent.com/kkakey/American_Idol/main/metadata/elimination_chart.csv")
+finalists <- readr::read_csv("https://raw.githubusercontent.com/kkakey/American_Idol/main/metadata/finalists.csv")
+ratings <- readr::read_csv("https://raw.githubusercontent.com/kkakey/American_Idol/main/metadata/ratings.csv")
+seasons <- readr::read_csv("https://raw.githubusercontent.com/kkakey/American_Idol/main/metadata/seasons.csv")
+songs <- readr::read_csv("https://raw.githubusercontent.com/kkakey/American_Idol/main/Songs/songs_all.csv")
 ```
 \
 Then looking at the raw data.
