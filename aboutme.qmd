@@ -12,7 +12,7 @@ rndpct <- sample(60:90, 1)
 ```{=html}
 <style>
   body {
-  background-image: url("https://github.com/whygit10/williamhyltin-P2-portfolio/blob/main/about-background.jpg");
+  background-image: url("https://raw.githubusercontent.com/whygit10/williamhyltin-P2-portfolio/refs/heads/main/about-background.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed
@@ -66,28 +66,6 @@ Beyond my professional and educational experience, I have a number of other inte
 ::::
 :::
 :::::
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
 \
 \
 \
