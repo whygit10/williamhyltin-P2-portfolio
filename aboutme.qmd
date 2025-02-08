@@ -1,7 +1,4 @@
 ---
-title: "About me"
-title-block-banner: "#170237b3"
-title-block-banner-color: white
 execute: 
   eval: true
   echo: false
@@ -12,62 +9,88 @@ rndpct <- sample(60:90, 1)
 ```{=html}
 <style>
   body {
-  background-image: url("https://raw.githubusercontent.com/whygit10/williamhyltin-P2-portfolio/refs/heads/main/about-background.jpg");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed
-}
+    background-image: url("https://raw.githubusercontent.com/whygit10/williamhyltin-P2-portfolio/refs/heads/main/about-background.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
+  /* Define the grid layout */
+  .custom-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr 0px; /* Fix the left column at 400px, and right takes remaining space */
+    gap: 20px; /* Adjust the gap between columns */
+    position: relative; /* Allow the left column to be positioned relative to the grid */
+  }
+
+  /* Style for the side column (fixed position on the left) */
+  .side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh; /* Full height of the viewport */
+    width: 400px; /* Fixed width for the left column */
+    padding: 20px;
+    background-color: #494949;
+    color: white;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    z-index: 10; /* Ensure it stays above other content */
+  }
+  .side img {
+    width: 200px; /* Set desired width */
+    height: 200px; /* Set desired height */
+    border-radius: 50%; /* Makes the image circular */
+    object-fit: cover; /* Ensures the image fills the circle properly */
+    margin-bottom: 20px; /* Space below the image */
+  }
+  /* Style for the right content */
+  .g-col-6 {
+    padding: 20px;
+    background-color: #30303099;
+  }
+
 </style>
+
+
+<div class="custom-grid">
+  <div class="g-col-3">
+    <div class="side">
+      <br>
+      <br>
+      <h1>William Hyltin</h1>
+      <img src="https://raw.githubusercontent.com/whygit10/williamhyltin-P2-portfolio/refs/heads/main/Analysis_Paralysis.jpg">
+      <br>
+      <p><a href="https://linkedin.com/in/william-hyltin">Linkedin</a> | <a href="https://github.com/whygit10">Github</a></p>
+      <br>
+      <p>I hold a Bachelor of Science in Mathematics and am currently in my final semester to complete my Masters of Science in Data Analytics at UTSA.</p>
+      <p>Talk to me about Omnichannel data, music, or dungeons and dragons!</p>
+      <br>
+      <br>
+      <br>
+      <p><em>"The work is mysterious and important."</em></p>
+      <p><strong>-Mark S.</strong></p>
+    </div>
+  </div>
+
+  <div class="g-col-6">
+    <h1>About Me</h1>
+    <h3>A man who needs no introduction, but since you're here</h3>
+    <p>My name is William Hyltin, I am currently a student in the Master of Science in Data Analytics program at the University of Texas at San Antonio. I have roughly 2 years of experience as an analyst, a year and a half as a Reporting Analyst for Omnichannel Analytics for a bank, and about 4 months of experience as a Business Strategy Analyst for the Actuary and Analytics organization of an insurance company. Professionally I've had the opportunity to use a number of different platforms, to include SQL (Snowflake, PROC SQL, and some SQL Server), SAS Enterprise Guide, Minitab, and Excel. Educationally I've had the opportunity to use R, Tableau, SAS (both Base and Enterprise Guide), and Python. Prior to working as an Analyst I worked for a call center as a phone representative, but my aspirations at the time had been to be come an Actuary, for which I was able to complete the first two exams (Probability and Financial Markets). It was ultimately several rejections for an entry level actuarial role that lead to me to my job as a Reporting Analyst, but I am finding that these more Data Analyst and adjacent roles are more enjoyable than the work I would have been doing as an Actuary.</p>
+
+    <h3>Work as a Reporting Analyst</h3>
+    <p>My work as a reporting analyst was rotational, and had me on a team of several other Strategy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like root cause analysis for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.</p>
+    
+    <h3>Work as a Business Strategy Analyst</h3>
+    <p>It has often been said to me that analysts will spend `{r} rndpct`% of their time massaging their data before they can start on the "real" analytic work. My role as a Business Strategy Analyst is intended to combat that. I work on a team whose purpose is to identify meaningful transactions or events that our customers are performing in complex and often disparate data, and translating this data into a consumable format so that Analysts can spend more time focusing on answering the questions at hand. This is similar to what a Data Engineer might do, but with a greater focus on how the business itself operates, and what an analyst would be looking for given a request from the business. This also means that analyses that we do are usually done in the name of accuracy over insight, and there is less of an opportunity for statistic methods outside of things like frequency-related measures and the occasional descriptive statistic.</p>
+    
+    <h3>Course Aspirations</h3>
+    <p>The genesis of this site is from my Practicum II class for my Masters Program, in which I am excited about the opportunity to create a proper portfolio for myself. I see it as a means of displaying the kind of real work I am capable of, and as a way to inspire myself to take on <a href="https://xkcd.com/2582/">more</a> curiosity projects that go beyond the requirements of formal education and my profession. I'm also excited for the opportunity to use more R, since its not a language I get to use often but when I do I always enjoy it.</p>
+    
+    <h3>But enough about me, let's talk about yours truly</h3>
+    <p>Beyond my professional and educational experience, I have a number of other interests that I struggle to make time for. I play dungeons and dragons fairly regularly on the weekends with a few other friends. I enjoy reading, particularly horror and classic science fiction (think more Flowers for Algernon and Invisible Man than Ender's Game). My girlfriend and I like going to concerts when we can, most recent standouts have been the reunion tour for the Postal Service and a Hot Mulligan show where one of the openers threw Burger Boy burgers into the crowd. I have two kids, a 6 year old aspiring princess/ doctor/ dancer/ singer/ chef, and a soon to be 14 year old son who is a trumpet and piano master with aspirations to become a music therapist.</p>
+  </div>
+</div>
 ```
-::::: columns
-::: {.column width="100%"}
-:::: {style="background-color: rgba(23,2,55,0.8); padding-left: 15px; padding-right: 15px; color: white"}
-
-\
-
-## A man who needs no introduction, but since you're here
-
-My name is William Hyltin, I am currently a student in the Master of Science in Data Analytics program at the University of Texas at San Antonio. I have roughly 2 years of experience as an analyst, a year and a half as a Reporting Analyst for Omnichannel Analytics for a bank, and about 4 months of experience as a Business Strategy Analyst for the Actuary and Analytics organization of an insurance company. Professionally I've had the opportunity to use a number of different platforms, to include SQL (Snowflake, PROC SQL, and some SQL Server), SAS Enterprise Guide, Minitab, and Excel. Educationally I've had the opportunity to use R, Tableau, SAS (both Base and Enterprise Guide), and Python. Prior to working as an Analyst I worked for a call center as a phone representative, but my aspirations at the time had been to be come an Actuary, for which I was able to complete the first two exams (Probability and Financial Markets). It was ultimately several rejections for an entry level actuarial role that lead to me to my job as a Reporting Analyst, but I am finding that these more Data Analyst and adjacent roles are more enjoyable than the work I would have been doing as an Actuary.
-\
-\
-\
-\
-
-## Work as a Reporting Analyst
-
-My work as a reporting analyst was rotational, and had me on a team of several other Strategy Analysts. As a result I ended up doing a lot of strategy analytics work in addition to my reporting responsibilities. Some of my responsibilities in the role were reporting on several call center metrics, like satisfaction survey results, handle time of calls, and call volume. The more strategic work I got to do were things like root cause analysis for changes in performance metrics, estimating the impacts that future changes would have on those metrics, and setting goals for call center employees based on their current performance and skills. Most of the work I did here was done in Snowflake SQL, excel, and SAS. I would use statistical techniques like regression, ANOVA, t-test, and descriptive statistics, then utilize my findings to build reports, visualizations, and make recommendations.
-\
-\
-\
-\
-
-## Work as a Business Strategy Analyst
-
-It has often been said to me that analysts will spend `{r} rndpct`% of their time massaging their data before they can start on the "real" analytic work. My role as a Business Strategy Analyst is intended to combat that. I work on a team whose purpose is to identify meaningful transactions or events that our customers are performing in complex and often disparate data, and translating this data into a consumable format so that Analysts can spend more time focusing on answering the questions at hand. This is similar to what a Data Engineer might do, but with a greater focus on how the business itself operates, and what an analyst would be looking for given a request from the business. This also means that analyses that we do are usually done in the name of accuracy over insight, and there is less of an opportunity for statistic methods outside of things like frequency-related measures and the occasional descriptive statistic.
-\
-\
-\
-\
-
-## Course Aspirations
-
-The genesis of this site is from my Practicum II class for my Masters Program, in which I am excited about the opportunity to create a proper portfolio for myself. I see it as a means of displaying the kind of real work I am capable of, and as a way to inspire myself to take on [more](https://xkcd.com/2582/) curiosity projects that go beyond the requirements of formal education and my profession. I'm also excited for the opportunity to use more R, since its not a language I get to use often but when I do I always enjoy it. 
-\
-\
-\
-\
-
-## But enough about me, let's talk about yours truly
-
-Beyond my professional and educational experience, I have a number of other interests that I struggle to make time for. I play dungeons and dragons fairly regularly on the weekends with a few other friends. I enjoy reading, particularly horror and classic science fiction (think more Flowers for Algernon and Invisible Man than Ender's Game). My girlfriend and I like going to concerts when we can, most recent standouts have been the reunion tour for the Postal Service and a Hot Mulligan show where one of the openers threw Burger Boy burgers into the crowd. I have two kids, a 6 year old aspiring princess/ doctor/ dancer/ singer/ chef, and a soon to be 14 year old son who is a trumpet and piano master with aspirations to become a music therapist.
-\
-\
-
-::::
-:::
-:::::
-\
-\
-\
-\
-\

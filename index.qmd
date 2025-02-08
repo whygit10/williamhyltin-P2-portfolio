@@ -1,34 +1,99 @@
 ---
-title: "Welcome to my website and data analysis profile"
-format: 
-   html:
-    fontcolor: black
+format: html
 ---
 
-### Pardon the Dust
+```{=html}
+<style>
+    /* Define the grid layout */
+  .custom-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr 0px; /* Fix the left column at 400px, and right takes remaining space */
+    gap: 20px; /* Adjust the gap between columns */
+    position: relative; /* Allow the left column to be positioned relative to the grid */
+  }
 
-This site is intended to serve as a repository for different analytic exercises and assignments done over the course of my education in the Data Analytics Masters Program at UTSA and beyond. This means that this site will be perpetually under construction. Here you can expect to find:
+  /* Style for the side column (fixed position on the left) */
+  .side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh; /* Full height of the viewport */
+    width: 400px; /* Fixed width for the left column */
+    padding: 20px;
+    background-color: #494949;
+    color: white;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    z-index: 10; /* Ensure it stays above other content */
+  }
+  .side img {
+    width: 200px; /* Set desired width */
+    height: 200px; /* Set desired height */
+    border-radius: 50%; /* Makes the image circular */
+    object-fit: cover; /* Ensures the image fills the circle properly */
+    margin-bottom: 20px; /* Space below the image */
+  }
+  /* Style for the right content */
+  .g-col-6 {
+    padding: 20px;
+    background-color: #30303099;
+    color: white;
+  }
 
--   Analyses
--   Visualizations
--   Applications of statistical methods
--   The slow spiral of a man drowning in the sea of his own imposter syndrome
--   Insights, hopefully
+</style>
 
-Please use the `Menu Bar` at the top to peruse to your liking.
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
 
-***Analytics is a combination of both art and science. Incidentally, robots are already better than us at both, but here's to trying.***
+<div class="custom-grid">
+  <div class="g-col-3">
+    <div class="side">
+      <br>
+      <br>
+      <h1>William Hyltin</h1>
+      <img src="https://raw.githubusercontent.com/whygit10/williamhyltin-P2-portfolio/refs/heads/main/Analysis_Paralysis.jpg">
+      <br>
+      <p><a href="https://linkedin.com/in/william-hyltin">Linkedin</a> | <a href="https://github.com/whygit10">Github</a></p>
+      <br>
+      <p>I hold a Bachelor of Science in Mathematics and am currently in my final semester to complete my Masters of Science in Data Analytics at UTSA.</p>
+      <p>Talk to me about Omnichannel data, music, or dungeons and dragons!</p>
+      <br>
+      <br>
+      <br>
+      <p><em>"The work is mysterious and important."</em></p>
+      <p><strong>-Mark S.</strong></p>
+    </div>
+  </div>
+
+  <div class="g-col-6">
+  <h1> Welcome to my website and data analysis profile</h1>
+  <h3>Pardon the Dust</h3>  
+  <p>This site is intended to serve as a repository for different analytic exercises and assignments done over the course of my education in the Data Analytics Masters Program at UTSA and beyond. This means that this site will be perpetually under construction. Here you can expect to find:</p>
+  <ul>
+  <li>Analyses</li>
+  <li>Visualizations</li>
+  <li>Applications of statistical methods</li>
+  <li>The slow spiral of a man drowning in the sea of his own imposter syndrome</li>
+  <li>Insights, hopefully</li>
+  <p>Please use the `Menu Bar` at the top to peruse to your liking.</p>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <p><em>It's pronounced data not data.</em></p>
+
+  </div>
+</div>
+```
