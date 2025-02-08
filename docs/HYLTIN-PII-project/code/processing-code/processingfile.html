@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="William Hyltin">
-<meta name="dcterms.date" content="2025-02-03">
+<meta name="dcterms.date" content="2025-02-08">
 
-<title>William Hyltin Data Analysis Portfolio - Cleaning up Crime</title>
+<title>Data Analysis Portfolio - Cleaning up Crime</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../../index.html">
-    <span class="navbar-title">William Hyltin Data Analysis Portfolio</span>
+    <span class="navbar-title">Data Analysis Portfolio</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -178,12 +178,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-layout-custom page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
 <!-- main -->
-<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
@@ -204,7 +202,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 3, 2025</p>
+      <p class="date">February 8, 2025</p>
     </div>
   </div>
   
@@ -219,7 +217,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="processing-script" class="level1">
 <h1>Processing script</h1>
 <section id="setup" class="level3">
-<h3 class="anchored" data-anchor-id="setup">Setup</h3>
+<h3 data-anchor-id="setup">Setup</h3>
 <p>Load needed packages.<br>
 <em>Pacman::p_load</em> makes sure they are installed before auto-loading.<br>
 <em>tidyverse</em> for general data processing/cleaning.<br>
@@ -990,7 +988,7 @@ $ Location                    &lt;chr&gt; "", "", "", "", "", "", "", "", "", ""
 <p>By inspecting the data as done above, we find some problems that need addressing:<br>
 </p>
 <section id="dates-and-times" class="level3">
-<h3 class="anchored" data-anchor-id="dates-and-times">Dates and Times</h3>
+<h3 data-anchor-id="dates-and-times">Dates and Times</h3>
 <p>We have seven time related fields in this dataset: Occurred.Date.Time, Occurred.Date, Occurred.Time, Report.Date.Time, Report.Date, Report.Time, and Clearance.Date.<br>
 - The Date-Time and Date variables were read in as strings, and the two Time variables were read in as numeric. So that we can treat these variables as actual representations of a point in time, we will need to re-code them into date, time, and date-time values.<br>
 - Many of the variables have missing or empty values where they shouldn’t. For example, there are some instances where the Occurred.Date.Time variable is empty, but the Occurred.Date and Occurred.Time values are not.<br>
@@ -1522,7 +1520,7 @@ $ Location                    &lt;chr&gt; "", "", "", "", "", "", "", "", "", ""
 <p>This should address all of the time-based variables. I may come back and update some of this, solely because I made some more analytic decisions regarding the empty values for Occurred.Date.Time. The logic is that if the time is missing, the occurrence would have had to have happened at least before the report time, though if the report occurred on a different day we assume the occurrence would have to be at least by midnight the same day. The number of empties, once the three “Occurred” variables are coalesced where appropriate, are relatively low, so I don’t expect this to have significant effect on any results either way.</p>
 </section>
 <section id="categorical-variables" class="level3">
-<h3 class="anchored" data-anchor-id="categorical-variables">Categorical Variables</h3>
+<h3 data-anchor-id="categorical-variables">Categorical Variables</h3>
 <p>In the initial looks at the dataset a few columns stand out as potential factor variables.<br>
 - Family Violence is a mostly complete field, though a minor oddity to it is the existence of a third factor when the codebook says it should only be two.<br>
 - APD Sector, APD District, and PRA may be the best values to serve as a categorical representation of location, since it has relatively few missing variables. Zip code may also work and be more consumable to the average person, however it does have more missing than the others mentioned. Lastly, X and Y Coordinates, though not naturally categorical, may be able to be used to create categorical groupings considering their completeness.<br>
@@ -2028,14 +2026,14 @@ $ Location                    &lt;chr&gt; "", "", "", "", "", "", "", "", "", ""
 <p>The categorical variables look good for now. Up until this point little exploration has been done and there may be other re-codes or filters that would be worth including for other variables. Likely once I am further into the analysis I will return to this step to make more adjustments, but the changes I’ve made should provide a good starting point.</p>
 </section>
 <section id="string-variables" class="level3">
-<h3 class="anchored" data-anchor-id="string-variables">String Variables</h3>
+<h3 data-anchor-id="string-variables">String Variables</h3>
 <p>There are a few string variables that may be worth using for the analysis. Some of these I covered in the categorical variables, but for those that have excessive number of unique values a categorical value may not be practical.<br>
 - Highest Offense Description has hundreds of unique values, but since this is essentially a description of the crimes committed there are likely commonalities that could lead to groupings. I can imagine more variables stemming from this as well, such as if the description contains certain keywords I could create indicator variables based on that presence. - Address is essentially another location based variable, and considering the number of them that have been cleaned for that purpose already it seems unlikely to need more. Still, the specificity offered by the address may be insightful, especially if i start drilling down into particular areas that suffer from the most crime. Potentially Doing something like a regular expression to extract a street name would be useful.<br>
 - Location Type does not have an unreasonable number of unique values, so this variable may better fit as a categorical only. Still the max length of some of the values lends itself to be that there may be more worth extracting from the field.</p>
 <p>Parsing out these string variables will likely be more of a cognitive load than the others would, so I will hold off on doing so for now. Once I am further along with the EDA I will have a better idea of what I want to be looking for within these variables anyway.</p>
 </section>
 <section id="and-were-back" class="level3">
-<h3 class="anchored" data-anchor-id="and-were-back">And We’re Back</h3>
+<h3 data-anchor-id="and-were-back">And We’re Back</h3>
 <p>The string variable <code>Highest.Offense.Description</code> was just too rich to pass up. It would make for an excellent categorical variable however there are over 400 categories going off the variable as-is. <code>UCR.Category</code> is a very nice alternative with only a few levels to the category, but the field is mostly empty due to the nature of the variable. It represent an FBI Categorization known as Uniform Crime Reporting (UCR) for the most serious of crimes. So I decided to take the matter into my own hands. Number one, I would create a new field that categorizes the crime myself, based on categorizations in the UCR program. If the observation had values in the UCR field, I would take that one, if it did not, I impute a category based on the description in the Highest Offense Description field. This was mostly done through brute force, with string detection and research in two places, the <a href="https://ucr.fbi.gov/crime-in-the-u.s/2019/crime-in-the-u.s.-2019/topic-pages/offense-definitions">FBI UCR archive</a> (2019 was not the only year that had information on the categorizations but it was the most in a quick reference format), and the <a href="https://statutes.capitol.texas.gov/">Texas Capitol Statutes website</a>. I feel the need to address this up front, I am absolutely not a criminologist, these categorizations are solely for the sake of making my analysis easier. I think of this as grouping the crime descriptions from the perspective of a layman, me, because ultimately the average person observing crime statistics will roughly as little knowledge about them as I do. An expert could and would do a much better job than I did, but that wasn’t readily available so I worked with what I had. Famous last words of an analyst.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(d2<span class="sc">$</span>Category.Description) <span class="sc">%&gt;%</span> <span class="fu">as.data.frame</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2836,7 +2834,7 @@ the `.groups` argument.</code></pre>
 </div>
 </section>
 <section id="tidied-up" class="level3">
-<h3 class="anchored" data-anchor-id="tidied-up">Tidied Up</h3>
+<h3 data-anchor-id="tidied-up">Tidied Up</h3>
 <p>All done, data is clean now.</p>
 <p>Let’s assign at the end to some final variable, this makes it easier to add further cleaning steps above.</p>
 <div class="cell">
@@ -2855,7 +2853,7 @@ the `.groups` argument.</code></pre>
 
 </section>
 
-</main> <!-- /main -->
+
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

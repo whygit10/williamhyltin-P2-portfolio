@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="William Hyltin">
-<meta name="dcterms.date" content="2025-02-03">
+<meta name="dcterms.date" content="2025-02-08">
 
-<title>William Hyltin Data Analysis Portfolio - Manuscript/Report Template for a Data Analysis Project</title>
+<title>Data Analysis Portfolio - Manuscript/Report Template for a Data Analysis Project</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -101,7 +101,7 @@ div.csl-indent {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../../index.html">
-    <span class="navbar-title">William Hyltin Data Analysis Portfolio</span>
+    <span class="navbar-title">Data Analysis Portfolio</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -164,12 +164,10 @@ div.csl-indent {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-layout-custom page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
 <!-- main -->
-<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
@@ -190,7 +188,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 3, 2025</p>
+      <p class="date">February 8, 2025</p>
     </div>
   </div>
   
@@ -218,15 +216,15 @@ div.csl-indent {
 <section id="introduction" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Introduction</h1>
 <section id="general-background-information" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="general-background-information"><span class="header-section-number">2.1</span> General Background Information</h2>
+<h2 data-number="2.1" data-anchor-id="general-background-information"><span class="header-section-number">2.1</span> General Background Information</h2>
 <p><em>Provide enough background on your topic that others can understand the why and how of your analysis</em></p>
 </section>
 <section id="description-of-data-and-data-source" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="description-of-data-and-data-source"><span class="header-section-number">2.2</span> Description of data and data source</h2>
+<h2 data-number="2.2" data-anchor-id="description-of-data-and-data-source"><span class="header-section-number">2.2</span> Description of data and data source</h2>
 <p>In addition to the standard variables of Height (in centimeters), Weight (in kilograms), and identified gender (Male, Female, Other), I have included twp additional variables: Generation and Salary. Generation represents the respondents age categorized into the self reported generation to which they belong, e.g.&nbsp;Gen Z are those with birth years between 1995 and 2012. Salary is the self reported annual salary in thousands of US dollars, e.g.&nbsp;a value of 70 would represent an annual salary of $70,000.</p>
 </section>
 <section id="questionshypotheses-to-be-addressed" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="questionshypotheses-to-be-addressed"><span class="header-section-number">2.3</span> Questions/Hypotheses to be addressed</h2>
+<h2 data-number="2.3" data-anchor-id="questionshypotheses-to-be-addressed"><span class="header-section-number">2.3</span> Questions/Hypotheses to be addressed</h2>
 <p><em>State the research questions you plan to answer with this analysis.</em></p>
 <p>To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above (here <code>dataanalysis_template_references.bib</code>) and have the right bibtex key. Then you can include like this:</p>
 <p>Examples of reproducible research projects can for instance be found in <span class="citation" data-cites="mckay2020 mckay2020a">(<a href="#ref-mckay2020" role="doc-biblioref">McKay, Ebell, Billings, et al., 2020</a>; <a href="#ref-mckay2020a" role="doc-biblioref">McKay, Ebell, Dale, Shen, &amp; Handel, 2020</a>)</span></p>
@@ -237,15 +235,15 @@ div.csl-indent {
 <h1 data-number="3"><span class="header-section-number">3</span> Methods</h1>
 <p><em>Describe your methods. That should describe the data, the cleaning processes, and the analysis approaches. You might want to provide a shorter description here and all the details in the supplement.</em></p>
 <section id="data-aquisition" class="level2" data-number="3.1">
-<h2 data-number="3.1" class="anchored" data-anchor-id="data-aquisition"><span class="header-section-number">3.1</span> Data aquisition</h2>
+<h2 data-number="3.1" data-anchor-id="data-aquisition"><span class="header-section-number">3.1</span> Data aquisition</h2>
 <p><em>As applicable, explain where and how you got the data. If you directly import the data from an online source, you can combine this section with the next.</em></p>
 </section>
 <section id="data-import-and-cleaning" class="level2" data-number="3.2">
-<h2 data-number="3.2" class="anchored" data-anchor-id="data-import-and-cleaning"><span class="header-section-number">3.2</span> Data import and cleaning</h2>
+<h2 data-number="3.2" data-anchor-id="data-import-and-cleaning"><span class="header-section-number">3.2</span> Data import and cleaning</h2>
 <p><em>Write code that reads in the file and cleans it so it’s ready for analysis. Since this will be fairly long code for most datasets, it might be a good idea to have it in one or several R scripts. If that is the case, explain here briefly what kind of cleaning/processing you do, and provide more details and well documented code somewhere (e.g.&nbsp;as supplement in a paper). All materials, including files that contain code, should be commented well so everyone can follow along.</em></p>
 </section>
 <section id="statistical-analysis" class="level2" data-number="3.3">
-<h2 data-number="3.3" class="anchored" data-anchor-id="statistical-analysis"><span class="header-section-number">3.3</span> Statistical analysis</h2>
+<h2 data-number="3.3" data-anchor-id="statistical-analysis"><span class="header-section-number">3.3</span> Statistical analysis</h2>
 <p><em>Explain anything related to your statistical analyses.</em></p>
 <div style="page-break-after: always;"></div>
 </section>
@@ -253,12 +251,12 @@ div.csl-indent {
 <section id="results" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Results</h1>
 <section id="exploratorydescriptive-analysis" class="level2" data-number="4.1">
-<h2 data-number="4.1" class="anchored" data-anchor-id="exploratorydescriptive-analysis"><span class="header-section-number">4.1</span> Exploratory/Descriptive analysis</h2>
+<h2 data-number="4.1" data-anchor-id="exploratorydescriptive-analysis"><span class="header-section-number">4.1</span> Exploratory/Descriptive analysis</h2>
 <p><em>Use a combination of text/tables/figures to explore and describe your data. Show the most important descriptive results here. Additional ones should go in the supplement. Even more can be in the R and Quarto files that are part of your project.</em></p>
 <p><a href="#tbl-summarytable" class="quarto-xref">Table&nbsp;1</a> shows a summary of the data.</p>
 <p>Note the loading of the data providing a <strong>relative</strong> path using the <code>../../</code> notation. (Two dots means a folder up). You never want to specify an <strong>absolute</strong> path like <code>C:\ahandel\myproject\results\</code> because if you share this with someone, it won’t work for them since they don’t have that path. You can also use the <code>here</code> R package to create paths. See examples of that below. <strong>I recommend the <code>here</code> package, but I’m showing the other approach here just in case you encounter it.</strong></p>
 <div class="cell">
-<div id="tbl-summarytable" class="cell quarto-float anchored">
+<div id="tbl-summarytable" class="cell quarto-float">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-summarytable-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Data summary table.
@@ -397,12 +395,12 @@ Table&nbsp;1: Data summary table.
 </div>
 </section>
 <section id="basic-statistical-analysis" class="level2" data-number="4.2">
-<h2 data-number="4.2" class="anchored" data-anchor-id="basic-statistical-analysis"><span class="header-section-number">4.2</span> Basic statistical analysis</h2>
+<h2 data-number="4.2" data-anchor-id="basic-statistical-analysis"><span class="header-section-number">4.2</span> Basic statistical analysis</h2>
 <p><em>To get some further insight into your data, if reasonable you could compute simple statistics (e.g.&nbsp;simple models with 1 predictor) to look for associations between your outcome(s) and each individual predictor variable. Though note that unless you pre-specified the outcome and main exposure, any “p&lt;0.05 means statistical significance” interpretation is not valid.</em></p>
 <p><a href="#fig-result" class="quarto-xref">Figure&nbsp;1</a> shows a scatterplot figure produced by one of the R scripts.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-result" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-result" class="quarto-figure quarto-figure-center quarto-float">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-result-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="../../results/figures/height-weight-stratified.png" class="img-fluid figure-img" width="1050">
@@ -416,11 +414,11 @@ Figure&nbsp;1: Height and weight stratified by gender.
 </div>
 </section>
 <section id="full-analysis" class="level2" data-number="4.3">
-<h2 data-number="4.3" class="anchored" data-anchor-id="full-analysis"><span class="header-section-number">4.3</span> Full analysis</h2>
+<h2 data-number="4.3" data-anchor-id="full-analysis"><span class="header-section-number">4.3</span> Full analysis</h2>
 <p><em>Use one or several suitable statistical/machine learning methods to analyze your data and to produce meaningful figures, tables, etc. This might again be code that is best placed in one or several separate R scripts that need to be well documented. You want the code to produce figures and data ready for display as tables, and save those. Then you load them here.</em></p>
 <p>Example <a href="#tbl-resulttable2" class="quarto-xref">Table&nbsp;2</a> shows a summary of a linear model fit.</p>
 <div class="cell">
-<div id="tbl-resulttable2" class="cell quarto-float anchored">
+<div id="tbl-resulttable2" class="cell quarto-float">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-resulttable2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Linear model fit table.
@@ -479,15 +477,15 @@ Table&nbsp;2: Linear model fit table.
 <section id="discussion" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Discussion</h1>
 <section id="summary-and-interpretation" class="level2" data-number="5.1">
-<h2 data-number="5.1" class="anchored" data-anchor-id="summary-and-interpretation"><span class="header-section-number">5.1</span> Summary and Interpretation</h2>
+<h2 data-number="5.1" data-anchor-id="summary-and-interpretation"><span class="header-section-number">5.1</span> Summary and Interpretation</h2>
 <p><em>Summarize what you did, what you found and what it means.</em></p>
 </section>
 <section id="strengths-and-limitations" class="level2" data-number="5.2">
-<h2 data-number="5.2" class="anchored" data-anchor-id="strengths-and-limitations"><span class="header-section-number">5.2</span> Strengths and Limitations</h2>
+<h2 data-number="5.2" data-anchor-id="strengths-and-limitations"><span class="header-section-number">5.2</span> Strengths and Limitations</h2>
 <p><em>Discuss what you perceive as strengths and limitations of your analysis.</em></p>
 </section>
 <section id="conclusions" class="level2" data-number="5.3">
-<h2 data-number="5.3" class="anchored" data-anchor-id="conclusions"><span class="header-section-number">5.3</span> Conclusions</h2>
+<h2 data-number="5.3" data-anchor-id="conclusions"><span class="header-section-number">5.3</span> Conclusions</h2>
 <p><em>What are the main take-home messages?</em></p>
 <p><em>Include citations in your Rmd file using bibtex, the list of references will automatically be placed at the end</em></p>
 <p>This paper <span class="citation" data-cites="leek2015">(<a href="#ref-leek2015" role="doc-biblioref">Leek &amp; Peng, 2015</a>)</span> discusses types of analyses.</p>
@@ -502,7 +500,7 @@ Table&nbsp;2: Linear model fit table.
 <section id="additional-variables-visualizations-and-tables" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Additional Variables, Visualizations, and Tables</h1>
 <div class="cell">
-<div id="tbl-resulttable3" class="cell quarto-float anchored">
+<div id="tbl-resulttable3" class="cell quarto-float">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-resulttable3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: Linear model fit table for additional variables.
@@ -565,7 +563,7 @@ Table&nbsp;3: Linear model fit table for additional variables.
 <p>The table of our linear model for the new variables concludes that there is not a linear relationship between Height and a respondents Age or Generation. Against an alpha level of 0.05, none of the variables were found to be statistically significant, so we would fail to reject the null hypothesis.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-result2" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-result2" class="quarto-figure quarto-figure-center quarto-float">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-result2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="../../results/figures/height-generation-boxplot.png" class="img-fluid figure-img" width="1050">
@@ -580,7 +578,7 @@ Figure&nbsp;2: Height boxplot by generation.
 <p>The boxplots reveal how the distribution of Height across each generation differs. Generation X appears to have the most variation in Height, while Gen Z has relatively little variation and has a higher IQR. The Millennial and Baby Boomer generations had only one respondent each, so a greater sample size would be necessary to make a proper conclusion about the relationship between Height and Generation.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-result3" class="quarto-figure quarto-figure-center quarto-float anchored">
+<div id="fig-result3" class="quarto-figure quarto-figure-center quarto-float">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-result3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="../../results/figures/salary-weight-scatter.png" class="img-fluid figure-img" width="1050">
@@ -598,17 +596,7 @@ Figure&nbsp;3: Height boxplot by generation.
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
-<div id="ref-leek2015" class="csl-entry" role="listitem">
-Leek, J. T., &amp; Peng, R. D. (2015). Statistics. <span>What</span> is the question? <em>Science (New York, N.Y.)</em>, <em>347</em>(6228), 1314–1315. <a href="https://doi.org/10.1126/science.aaa6146">https://doi.org/10.1126/science.aaa6146</a>
-</div>
-<div id="ref-mckay2020" class="csl-entry" role="listitem">
-McKay, B., Ebell, M., Billings, W. Z., Dale, A. P., Shen, Y., &amp; Handel, A. (2020). Associations <span>Between Relative Viral Load</span> at <span>Diagnosis</span> and <span>Influenza A Symptoms</span> and <span>Recovery</span>. <em>Open Forum Infectious Diseases</em>, <em>7</em>(11), ofaa494. <a href="https://doi.org/10.1093/ofid/ofaa494">https://doi.org/10.1093/ofid/ofaa494</a>
-</div>
-<div id="ref-mckay2020a" class="csl-entry" role="listitem">
-McKay, B., Ebell, M., Dale, A. P., Shen, Y., &amp; Handel, A. (2020). Virulence-mediated infectiousness and activity trade-offs and their impact on transmission potential of influenza patients. <em>Proceedings. Biological Sciences</em>, <em>287</em>(1927), 20200496. <a href="https://doi.org/10.1098/rspb.2020.0496">https://doi.org/10.1098/rspb.2020.0496</a>
-</div>
-</div></section></div></main> <!-- /main -->
+
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -1018,7 +1006,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
-</div> <!-- /content -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-leek2015" class="csl-entry" role="listitem">
+Leek, J. T., &amp; Peng, R. D. (2015). Statistics. <span>What</span> is the question? <em>Science (New York, N.Y.)</em>, <em>347</em>(6228), 1314–1315. <a href="https://doi.org/10.1126/science.aaa6146">https://doi.org/10.1126/science.aaa6146</a>
+</div>
+<div id="ref-mckay2020" class="csl-entry" role="listitem">
+McKay, B., Ebell, M., Billings, W. Z., Dale, A. P., Shen, Y., &amp; Handel, A. (2020). Associations <span>Between Relative Viral Load</span> at <span>Diagnosis</span> and <span>Influenza A Symptoms</span> and <span>Recovery</span>. <em>Open Forum Infectious Diseases</em>, <em>7</em>(11), ofaa494. <a href="https://doi.org/10.1093/ofid/ofaa494">https://doi.org/10.1093/ofid/ofaa494</a>
+</div>
+<div id="ref-mckay2020a" class="csl-entry" role="listitem">
+McKay, B., Ebell, M., Dale, A. P., Shen, Y., &amp; Handel, A. (2020). Virulence-mediated infectiousness and activity trade-offs and their impact on transmission potential of influenza patients. <em>Proceedings. Biological Sciences</em>, <em>287</em>(1927), 20200496. <a href="https://doi.org/10.1098/rspb.2020.0496">https://doi.org/10.1098/rspb.2020.0496</a>
+</div>
+</div></section></div></div> <!-- /content -->
 
 
 
