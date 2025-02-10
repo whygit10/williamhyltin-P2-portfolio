@@ -70,8 +70,7 @@ rndpct <- sample(60:90, 1)
       <br>
       <br>
       <br>
-      <p><em>"The work is mysterious and important."</em></p>
-      <p><strong>-Mark S.</strong></p>
+      <p><em>"It's pronounced data not data."</em></p>
     </div>
   </div>
 

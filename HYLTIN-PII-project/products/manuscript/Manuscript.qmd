@@ -5,6 +5,7 @@ author: William Hyltin
 date: "`r Sys.Date()`"
 format:
   html:
+    page-layout: article
     embed-resources: true
     code-fold: true
 editor: 

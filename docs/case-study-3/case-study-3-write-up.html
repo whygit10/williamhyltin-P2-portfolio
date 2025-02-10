@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.554">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Will Hyltin, Holly Milazzo and Tim Harrison">
+<meta name="dcterms.date" content="2025-02-09">
+
+<title>Data Analysis Portfolio - DA 6813 Case Study 3 Dow Jones</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link href="../site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+
+<script src="../site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Data Analysis Portfolio</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../aboutme.html"> 
+<span class="menu-text">About Me</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-projects" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Projects</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-projects">    
+        <li>
+    <a class="dropdown-item" href="../case-study-1/case-study-1-write-up.html">
+ <span class="dropdown-text">Case Study 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../case-study-2/case-study-2-write-up.html">
+ <span class="dropdown-text">Case Study 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../case-study-3/case-study-3-write-up.html">
+ <span class="dropdown-text">Case Study 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../case-study-4/case-study-4-write-up.html">
+ <span class="dropdown-text">Case Study 4</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../presentation-exercise/presentation-exercise.html">
+ <span class="dropdown-text">Presentation Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tidytuesday-exercise/tidytuesday-exercise.html">
+ <span class="dropdown-text">Tidy Tuesday Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../data-exercise/data-exercise.html">
+ <span class="dropdown-text">Complex Data Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../cdcdata-exercise/cdcdata-exercise.html">
+ <span class="dropdown-text">CDC Data Exercise</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../HYLTIN-PII-project/products/manuscript/Manuscript.html">
+ <span class="dropdown-text">Crime in Austin, TX</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/whygit10/williamhyltin-P2-portfolio"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">DA 6813 Case Study 3 Dow Jones</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Will Hyltin, Holly Milazzo and Tim Harrison </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 9, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="executive-summary" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Executive Summary</h1>
+<p>This case study focuses on predicting weekly stock price changes for the Dow Jones Index to optimize investment strategies. Using historical stock performance data, including prices, trading volumes, and financial indicators, the analysis aimed to forecast the <strong>percent_change_next_weeks_price</strong> for each stock. Three models—Linear Regression (LM), Decision Trees (DT), and Support Vector Regression (SVR)—were developed and evaluated using Root Mean Square Error (RMSE) as the primary metric. Data preprocessing steps included handling missing values with KNN imputation and normalizing numeric features to ensure comparability, especially for SVR. The findings showed that SVR consistently outperformed LM and DT, delivering the lowest RMSE across various stocks. This highlights its superior capability in capturing complex, non-linear relationships within the data. The insights gained from this analysis provide actionable recommendations for selecting stocks with high growth potential and managing investment risks. Future enhancements, such as incorporating ensemble methods and additional financial indicators, could further improve predictive accuracy and decision-making.</p>
+</section>
+<section id="problem-statement" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Problem Statement</h1>
+<p>The Dow Jones Index case study addresses a critical business challenge: predicting weekly stock performance to optimize investment strategies. In a highly volatile market, businesses and investors rely on accurate forecasts to maximize returns and mitigate risks. This study aims to develop predictive models that forecast the percentage change in stock prices for the following week, helping identify stocks with the highest growth potential. Using historical data, including stock prices, trading volumes, and financial indicators, the analysis seeks to improve decision-making by leveraging models such as Linear Regression, Decision Trees, and Support Vector Regression. These models will be evaluated for their accuracy and ability to assess risk using methods like the Capital Asset Pricing Model (CAPM). Addressing this problem will enable businesses to allocate resources more effectively, capitalize on profitable opportunities, and enhance their competitive edge in the financial market. Notably, the study will also examine broader market risks, such as the unusual losses experienced by all Dow Jones stocks in the week ending May 27, 2011, providing a comprehensive view of potential challenges.</p>
+</section>
+<section id="additional-sources" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Additional Sources</h1>
+<p>Support Vector Machines (SVMs) have been extensively applied in financial markets for stock price prediction due to their ability to handle complex, non-linear relationships. For instance, a study by Kim (2003) demonstrated that SVMs could outperform traditional models in forecasting stock price indices, highlighting their robustness in capturing market dynamics.</p>
+<p>The Capital Asset Pricing Model (CAPM) is a fundamental tool in finance for assessing the risk and expected return of an investment. It establishes a linear relationship between the expected return of an asset and its systematic risk, measured by beta. This model aids investors in determining whether a stock is fairly priced relative to its risk. For a comprehensive understanding of CAPM, Investopedia provides an in-depth explanation of its components and applications.</p>
+<p>Integrating SVMs for stock price prediction with CAPM for risk assessment can offer a holistic approach to investment decision-making, combining advanced predictive analytics with established financial theories.</p>
+<ol type="1">
+<li><p><strong>Kim, K. (2003).</strong><br>
+A study on the application of Support Vector Machines (SVM) for stock price index prediction.<br>
+https://www.researchgate.net/publication/220379019</p></li>
+<li><p><strong>Wall Street Prep - Capital Asset Pricing Model (CAPM).</strong><br>
+Comprehensive guide on using CAPM for risk assessment in financial markets.<br>
+https://www.wallstreetprep.com/knowledge/capm-capital-asset-pricing-model</p></li>
+<li><p><strong>Investopedia - Capital Asset Pricing Model (CAPM).</strong><br>
+In-depth explanation of CAPM, its components, and applications.<br>
+https://www.investopedia.com/terms/c/capm.asp</p></li>
+</ol>
+</section>
+<section id="methodology" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Methodology</h1>
+<p>To predict weekly stock price changes (<code>percent_change_next_weeks_price</code>), we employed three models: Linear Regression (LM), Decision Trees (DT), and Support Vector Regression (SVR). Before modeling, we performed comprehensive data preprocessing. Missing values in key variables were addressed using KNN imputation to preserve data integrity. Numeric features were scaled and normalized to ensure comparability, particularly important for SVR, which relies on distance measures in feature space. Lagged variables were created to capture potential temporal dependencies; however, lagged plots indicated no significant relationship between the lagged variables and the target, so they were excluded from the final models. The data was then split into training (Q1) and testing (Q2) sets, maintaining temporal integrity to simulate real-world forecasting scenarios.</p>
+<p>Each model comes with specific assumptions. Linear Regression assumes a linear relationship between predictors and the target, independence of errors, homoscedasticity (constant error variance), and normally distributed errors. It also requires minimal multicollinearity among predictors. Decision Trees, being non-parametric, do not assume a specific relationship between predictors and the target but are sensitive to small data changes. SVR, which emerged as the best-performing model, makes no assumptions about the data’s underlying distribution but relies on normalized inputs to maximize the margin around the true values. Model performance was evaluated using Root Mean Square Error (RMSE), as it effectively measures prediction accuracy without the limitations of Mean Absolute Percentage Error (MAPE), which is problematic when actual values approach zero.</p>
+<p>To tailor predictions to individual stocks, we applied these modeling techniques separately to each stock in the dataset. A loop was used to iterate through each stock, training and testing the models on its specific data. This approach ensured that the models accounted for the unique patterns and behaviors of each stock. SVR consistently achieved the lowest RMSE across stocks, making it the most reliable model for predicting weekly stock changes. Future work could explore ensemble methods or incorporate additional financial indicators to improve performance further.</p>
+</section>
+<section id="data" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Data</h1>
+<p>The dataset for this analysis consists of weekly stock performance metrics from the Dow Jones Index, including variables such as opening, closing, high, and low prices, trading volumes, and percentage changes in prices. After importing the data, we conducted a thorough inspection to understand its structure and address missing values. Missing data, particularly in numeric variables like <code>percent_change_volume_over_last_wk</code> and <code>previous_weeks_volume</code>, was imputed using KNN imputation to maintain data integrity and preserve patterns. Numeric features were normalized and scaled to ensure comparability, which was especially crucial for models like SVR that depend on distance-based calculations.</p>
+<p>To explore potential temporal dependencies, we initially created lagged variables, assuming that previous week changes might have predictive power for the target variable, <code>percent_change_next_weeks_price</code>. However, as shown in the lag plot below, there was no significant correlation between the lagged variable (<code>percent_change_price</code> of the previous week) and the target variable. The scatterplot shows a nearly flat trend line, indicating that the past week’s percentage change provides no meaningful predictive value for the current week’s change. Consequently, we excluded the lagged variables from our final models to avoid introducing unnecessary noise. After preprocessing, the data was split into training (Q1) and testing (Q2) sets, maintaining temporal integrity to simulate realistic forecasting scenarios. This preprocessing ensured a solid foundation for our modeling efforts.</p>
+<p>Below, the plot illustrates the lack of correlation between the lagged variable and the target, confirming its irrelevance to our predictive modeling:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case-study-3-write-up_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="findings" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Findings</h1>
+<p>Our analysis assessed the performance of Linear Regression (LM), Decision Trees (DT), and Support Vector Regression (SVR) for predicting weekly stock price changes, with Root Mean Square Error (RMSE) as the evaluation metric. Preprocessing steps, including KNN imputation and normalization, ensured the models were optimized for performance. Among the models, SVR consistently delivered the lowest RMSE, averaging <strong>0.211</strong>, compared to <strong>18.3</strong> for LM and <strong>0.250</strong> for DT, as shown in the bar chart below. This highlights SVR’s superior ability to capture complex, non-linear relationships, making it the most reliable model for stock forecasting.</p>
+<p>For individual stocks such as AA, AXP, and BA, SVR demonstrated robust performance, with RMSE values of <strong>0.234</strong>, <strong>0.167</strong>, and <strong>0.250</strong>, respectively. In contrast, LM’s RMSE for these stocks was significantly higher at <strong>18.8</strong>, <strong>16.8</strong>, and <strong>3.21</strong>, while DT showed moderate accuracy with RMSE values of <strong>0.335</strong>, <strong>0.234</strong>, and <strong>0.274</strong>. The bar chart below compares RMSE values across all three models, clearly illustrating SVR’s consistent accuracy.</p>
+<p>The second visual, a line graph, provides an analysis of stock performance relative to the S&amp;P 500. This graph plots the Beta coefficient (x-axis), which measures each stock’s volatility compared to the market, against performance (y-axis). Stocks on the left represent lower risk (Beta &lt; 1), while those on the right show higher risk (Beta &gt; 1). This risk-performance relationship helps contextualize each stock’s predictive accuracy and market behavior. SVR’s ability to accurately forecast stock prices across both low- and high-risk stocks demonstrates its adaptability, even under varying market conditions.</p>
+<section id="visuals" class="level3" data-number="6.0.1">
+<h3 data-number="6.0.1" class="anchored" data-anchor-id="visuals"><span class="header-section-number">6.0.1</span> Visuals:</h3>
+<ol type="1">
+<li><p><strong>Bar Chart: RMSE Comparison Across Models</strong><br>
+Highlights the predictive accuracy of LM, DT, and SVR for individual stocks.</p></li>
+<li><p><strong>Line Graph: Stock Performance Relative to S&amp;P 500</strong><br>
+Shows the relationship between risk (Beta coefficient) and stock performance, providing insights into market dynamics and risk management.</p></li>
+<li><p><strong>Bar Graph: Comparison of Actual vs SVR Prediction by Stock</strong></p></li>
+</ol>
+<p>These findings affirm SVR as the most effective model for predicting weekly stock price changes, offering both accuracy and adaptability. Future efforts could explore ensemble methods or integrate additional risk indicators for enhanced forecasting.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["RMSE_LM"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["RMSE_SVR"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["RMSE_Tree"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"18.26677","2":"0.2111089","3":"0.2500495"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["RMSE_LM"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["RMSE_SVR"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["RMSE_Tree"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"33.13613","2":"0.2199543","3":"0.2547144"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case-study-3-write-up_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["pct"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["percent_change_price"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"0.037926675","2":"3.792670","_rn_":"1"},{"1":"-0.044284859","2":"-4.428490","_rn_":"2"},{"1":"-0.024706609","2":"-2.470660","_rn_":"3"},{"1":"0.016383113","2":"1.638310","_rn_":"4"},{"1":"0.059332509","2":"5.933250","_rn_":"5"},{"1":"0.002308136","2":"0.230814","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case-study-3-write-up_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case-study-3-write-up_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Conclusion</h1>
+<p>In conclusion, the study demonstrated that Support Vector Regression (SVR) is the most effective model for predicting weekly stock price changes, consistently outperforming Linear Regression and Decision Trees in terms of RMSE. This result underscores the importance of selecting models capable of capturing complex, non-linear relationships in financial data. The preprocessing steps, including normalization and KNN imputation, ensured the models operated on high-quality data, contributing to the reliability of the findings. While the SVR model showed strong predictive performance, future improvements could involve exploring ensemble techniques and integrating additional indicators such as market sentiment or macroeconomic variables. These enhancements could further refine the models’ predictive capabilities and provide deeper insights into stock market behavior, aiding investors in making informed, data-driven decisions.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

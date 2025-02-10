@@ -1,0 +1,753 @@
+---
+title: "Final Project Sandbox"
+format: html
+---
+
+```{r setup}
+#install.packages('DescTools', 'caret', 'broom')
+pacman::p_load(MASS, randomForestSRC, tidyverse, e1071, here, readxl, skimr, corrplot, patchwork)
+
+rawdf <- read.csv(here('applications-final-project', 'online_shoppers_intention.csv'))
+```
+
+# Data Description
+
+[Data Source](https://archive.ics.uci.edu/dataset/468/online+shoppers+purchasing+intention+dataset)
+\
+**Data Dictionary**
+The dataset consists of 10 numerical and 8 categorical attributes.
+The 'Revenue' attribute can be used as the class label.
+
+"Administrative", "Administrative Duration", "Informational", "Informational Duration", "Product Related" and "Product Related Duration" represent the number of different types of pages visited by the visitor in that session and total time spent in each of these page categories. The values of these features are derived from the URL information of the pages visited by the user and updated in real time when a user takes an action, e.g. moving from one page to another. The "Bounce Rate", "Exit Rate" and "Page Value" features represent the metrics measured by "Google Analytics" for each page in the e-commerce site. The value of "Bounce Rate" feature for a web page refers to the percentage of visitors who enter the site from that page and then leave ("bounce") without triggering any other requests to the analytics server during that session. The value of "Exit Rate" feature for a specific web page is calculated as for all pageviews to the page, the percentage that were the last in the session. The "Page Value" feature represents the average value for a web page that a user visited before completing an e-commerce transaction. The "Special Day" feature indicates the closeness of the site visiting time to a specific special day (e.g. Mother’s Day, Valentine's Day) in which the sessions are more likely to be finalized with transaction. The value of this attribute is determined by considering the dynamics of e-commerce such as the duration between the order date and delivery date. For example, for Valentine’s day, this value takes a nonzero value between February 2 and February 12, zero before and after this date unless it is close to another special day, and its maximum value of 1 on February 8. The dataset also includes operating system, browser, region, traffic type, visitor type as returning or new visitor, a Boolean value indicating whether the date of the visit is weekend, and month of the year.
+
+```{r}
+summary(rawdf)
+```
+
+```{r}
+head(rawdf)
+```
+
+
+```{r}
+skim(rawdf)
+```
+
+# Data Cleaning 
+
+```{r}
+MnthOrder <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+```
+
+```{r}
+df1 <- rawdf %>% 
+  mutate(
+    across(
+      c(OperatingSystems, Browser, Region, TrafficType, VisitorType), as.factor
+      ),
+    Month = fct_relevel(Month, MnthOrder),
+    Revenue = ifelse(Revenue == TRUE, 1, 0),
+    Revenue = as.factor(Revenue)
+    )
+```
+
+```{r}
+skim(df1)
+```
+
+```{r}
+for (i in colnames(select_if(df1, negate(is.numeric)))){
+  print(i)
+  print(unique(df1[[i]]))
+}
+```
+
+Traffic type causes some problems with a few factors being very infrequent, so I will collapse them here to make it easier for test and training splits.
+
+```{r}
+df2 <- df1 %>% mutate(
+  TrafficType = fct_lump_lowfreq(TrafficType)
+)
+```
+
+# Data Exploration
+
+```{r}
+barplots <- lapply(colnames(select_if(df1, negate(is.numeric))),
+       function(col) {
+        ggplot(select_if(df1, negate(is.character)),
+                aes(y = df1[[col]], fill = df1$Revenue)) + 
+           geom_bar() + 
+           ggtitle(col) + 
+           ylab(col) +
+           xlab('Count') +
+           theme(legend.position = 'top', legend.background = element_blank()) +
+           labs(fill = 'Revenue')
+       }
+)
+
+barplots[[1]] + barplots[[2]]
+barplots[[3]] + barplots[[4]]
+barplots[[5]] + barplots[[6]]
+barplots[[7]] + barplots[[8]]
+```
+
+```{r}
+df1 %>% mutate(
+  Transaction = ifelse(Revenue == '1', 'Yes', 'No')
+  ) %>% 
+  ggplot(aes(y = Transaction)) + 
+  geom_bar() +
+  ylab('Transaction Performed') +
+  xlab('Frequency') +
+  labs(
+    title = 'Number of User Sessions that End in a Revenue Transaction', 
+    subtitle = 'User sessions do not typically end in a revenue transaction, \nresulting in class imabalance for our response variable.'
+    ) +
+  theme_minimal() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+```{r}
+dfMonths <- df1 %>% group_by(Month, Revenue) %>% summarize(Count = n())
+data.frame(Month = fct_relevel(MnthOrder, MnthOrder)) %>% 
+  left_join(dfMonths, by = join_by(Month)) %>% 
+  ggplot(aes(x = Month, y= Count, fill = Revenue)) +
+  geom_col() +
+  labs(
+    title = 'Number of User Sessions by Month', 
+    subtitle = 'The number of user sessions varies by month, \nwith January and April completely unrepresented.'
+    ) +
+  scale_fill_discrete(na.translate = F) +
+  theme_minimal() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+
+```{r}
+boxplots <- lapply(colnames(select_if(df1, is.numeric)),
+       function(col) {
+        ggplot(select_if(df1, negate(is.character)),
+                aes(y = df1[[col]], x = df1$Revenue)) + 
+           geom_boxplot() + 
+           ggtitle(col) + 
+           ylab(col) +
+           xlab('Revenue')
+       }
+)
+
+boxplots[[1]] + boxplots[[2]]
+boxplots[[3]] + boxplots[[4]]
+boxplots[[5]] + boxplots[[6]]
+boxplots[[7]] + boxplots[[8]]
+boxplots[[9]] + boxplots[[10]]
+```
+
+```{r}
+df1 %>% 
+  ggplot(aes(y = as.factor(SpecialDay), fill = Revenue)) +#, x = Count)) +
+  geom_bar() +
+  labs(
+    title = 'Number of Sessions by \"Special Day\" Value', 
+    subtitle = 'The Special Day variable is primarily composed of 0 values'
+    ) +
+  ylab('Special Day Value') +
+  xlab('Count') +
+  theme_minimal() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+```{r}
+df1 %>% filter(SpecialDay != 0) %>% 
+  ggplot(aes(y = as.factor(SpecialDay), fill = Revenue)) +#, x = Count)) +
+  geom_bar() +
+  labs(
+    title = 'Number of Sessions by \"Special Day\" Value', 
+    subtitle = 'Non-zero values may have a different distribution,\nbut are dwarfed by the zero values'
+    ) +
+  ylab('Special Day Value') +
+  xlab('Count') +
+  theme_minimal() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+Transformation to handle skewness?
+
+```{r}
+df1 %>% select_if(is.numeric) %>% cor() %>% corrplot(method = 'number', type = 'lower', tl.cex = .75, number.cex = 0.6)
+```
+BounceRates and ExitRates highly correlated. Exit rates looks like it has greater separation between our response variable classes than BounceRates does based on boxplots.
+ProductRelated and ProductRelated_Duration Highly correlated
+other duration variables are also pretty correlated, but not so much to immediately filter out.
+
+I'm a little concerned about the variable PageValues. It may be too closely associated with our target variable, and could result in perfect separation, or issues with identifying variable importance or effects.
+
+```{r}
+#df2 %>% mutate(PageFactor = as.factor(ifelse(PageValues > 0, 1, 0))) %>% 
+#  group_by(PageFactor, Revenue) %>% 
+#  summarize(n = n())
+
+ df2 %>% mutate(PV_ind = ifelse(PageValues > 0, 1, 0)) %>% 
+   group_by(PV_ind) %>% 
+   summarize(
+     Rev = sum(ifelse(Revenue == '0', 0, 1)), 
+     NonRev=n() - Rev
+     )
+```
+
+
+# Statistical Testing
+
+```{r}
+set.seed(24601)
+
+testsub <- sample(nrow(df2),12330,replace = F)
+testsamps <- df2[testsub,]
+```
+
+
+```{r}
+for (i in colnames(select_if(select(testsamps, -Revenue), negate(is.numeric)))){
+  print(i)
+  print(table(testsamps[[i]], testsamps$Revenue))
+  print(chisq.test(testsamps[[i]], testsamps$Revenue))
+}
+```
+
+```{r}
+testsamps_pos <- testsamps %>% filter(Revenue == '1')
+testsamps_neg <- testsamps %>% filter(Revenue == '0')
+```
+
+
+Non-Normal distributions, T-test is not valid:
+
+```{r}
+for (i in colnames(select_if(testsamps, is.numeric))){
+  print(i)
+  print(t.test(testsamps_neg[[i]], testsamps_pos[[i]]))
+}
+```
+
+```{r}
+for (i in colnames(select_if(testsamps, is.numeric))){
+  print(i)
+  print(wilcox.test(testsamps_neg[[i]], testsamps_pos[[i]]))
+}
+```
+
+```{r}
+numvars <- names(select_if(testsamps, is.numeric))
+summary(glm(Revenue ~ ., data = testsamps[which(names(testsamps) %in% numvars | names(testsamps)=='Revenue')], family = binomial))
+```
+
+```{r}
+logit_test <- glm(Revenue ~ ., data = testsamps, family = binomial)
+summary(logit_test) 
+```
+
+```{r}
+logtestdf <- testsamps %>%
+  mutate(
+    probabilities = predict(logit_test, type = 'response'),
+    logit = log(probabilities/(1-probabilities))
+)
+```
+
+```{r}
+logit_scatter_test <- lapply(colnames(select_if(logtestdf, is.numeric)),
+       function(col) {
+        ggplot(logtestdf,
+                aes(x = .data$logit, y = .data[[col]])) + 
+           geom_point() + 
+           geom_smooth(method = 'loess') + 
+           ggtitle(col)
+       }
+)
+
+logit_scatter_test[[1]] + logit_scatter_test[[2]] + logit_scatter_test[[3]] + logit_scatter_test[[4]]
+logit_scatter_test[[5]] + logit_scatter_test[[6]] + logit_scatter_test[[7]] + logit_scatter_test[[8]]
+logit_scatter_test[[9]] + logit_scatter_test[[10]]
+```
+
+# Data Preparation and Splits
+
+## Unbalanced Split
+
+```{r}
+# making test and train sets
+set.seed(24601) 
+unbal_part <- sample(nrow(df2),0.8*nrow(df2),replace = F)
+
+unbal_train <- df2[unbal_part,]
+unbal_test <- df2[-unbal_part,]
+```
+
+## Standardizing Numeric Variables
+
+```{r}
+num_means <- unbal_train %>% select_if(is.numeric) %>% colMeans() %>% t() %>% as.data.frame()
+# rownames(num_means) <- 'mean'
+
+num_means <- num_means %>% 
+  rows_append(
+    apply(unbal_train %>% select_if(is.numeric), 2,sd) %>% 
+      t() %>% as.data.frame()
+    )
+
+rownames(num_means) <- c('means', 'sd')
+```
+
+```{r}
+unbal_trn_norm <- unbal_train %>% mutate(
+    Administrative = (Administrative - num_means$Administrative[1])/num_means$Administrative[2],
+    Administrative_Duration = (Administrative_Duration - num_means$Administrative_Duration[1])/num_means$Administrative_Duration[2],
+    Informational = (Informational - num_means$Informational[1])/num_means$Informational[2],
+    Informational_Duration = (Informational_Duration - num_means$Informational_Duration[1])/num_means$Informational_Duration[2],
+    ProductRelated = (ProductRelated - num_means$ProductRelated[1])/num_means$ProductRelated[2],
+    ProductRelated_Duration = (ProductRelated_Duration - num_means$ProductRelated_Duration[1])/num_means$ProductRelated_Duration[2],
+    BounceRates = (BounceRates - num_means$BounceRates[1])/num_means$BounceRates[2],
+    ExitRates = (ExitRates - num_means$ExitRates[1])/num_means$ExitRates[2],
+    PageValues = (PageValues - num_means$PageValues[1])/num_means$PageValues[2],
+    SpecialDay = (SpecialDay - num_means$SpecialDay[1])/num_means$SpecialDay[2]
+)
+
+unbal_tst_norm <- unbal_test %>% mutate(
+    Administrative = (Administrative - num_means$Administrative[1])/num_means$Administrative[2],
+    Administrative_Duration = (Administrative_Duration - num_means$Administrative_Duration[1])/num_means$Administrative_Duration[2],
+    Informational = (Informational - num_means$Informational[1])/num_means$Informational[2],
+    Informational_Duration = (Informational_Duration - num_means$Informational_Duration[1])/num_means$Informational_Duration[2],
+    ProductRelated = (ProductRelated - num_means$ProductRelated[1])/num_means$ProductRelated[2],
+    ProductRelated_Duration = (ProductRelated_Duration - num_means$ProductRelated_Duration[1])/num_means$ProductRelated_Duration[2],
+    BounceRates = (BounceRates - num_means$BounceRates[1])/num_means$BounceRates[2],
+    ExitRates = (ExitRates - num_means$ExitRates[1])/num_means$ExitRates[2],
+    PageValues = (PageValues - num_means$PageValues[1])/num_means$PageValues[2],
+    SpecialDay = (SpecialDay - num_means$SpecialDay[1])/num_means$SpecialDay[2]
+)
+```
+
+## Balancing the datasets
+
+```{r}
+rev_part <- df2 %>% filter(Revenue == '1')
+nrev_part <- df2 %>% filter(Revenue == '0')
+
+set.seed(24601)
+sample_nrev_part = sample_n(nrev_part, nrow(rev_part))
+bal_df1 <- rbind(rev_part,sample_nrev_part)
+
+# making test and train sets
+set.seed(24601)
+bal_part <- sample(nrow(bal_df1),0.8*nrow(bal_df1),replace = F)
+
+bal_train1 <- bal_df1[bal_part,]
+bal_test1 <- bal_df1[-bal_part,]
+```
+
+## Balanced, Normalized
+
+Normalizing the balanced data
+
+```{r}
+bal_num_means <- bal_train1 %>% select_if(is.numeric) %>% colMeans() %>% t() %>% as.data.frame()
+
+bal_num_means <- bal_num_means %>% 
+  rows_append(
+    apply(bal_train1 %>% select_if(is.numeric), 2,sd) %>% 
+      t() %>% as.data.frame()
+    )
+
+rownames(bal_num_means) <- c('means', 'sd')
+```
+
+```{r}
+bal_trn_norm <- bal_train1 %>% mutate(
+    Administrative = (Administrative - bal_num_means$Administrative[1])/bal_num_means$Administrative[2],
+    Administrative_Duration = (Administrative_Duration - bal_num_means$Administrative_Duration[1])/bal_num_means$Administrative_Duration[2],
+    Informational = (Informational - bal_num_means$Informational[1])/bal_num_means$Informational[2],
+    Informational_Duration = (Informational_Duration - bal_num_means$Informational_Duration[1])/bal_num_means$Informational_Duration[2],
+    ProductRelated = (ProductRelated - bal_num_means$ProductRelated[1])/bal_num_means$ProductRelated[2],
+    ProductRelated_Duration = (ProductRelated_Duration - bal_num_means$ProductRelated_Duration[1])/bal_num_means$ProductRelated_Duration[2],
+    BounceRates = (BounceRates - bal_num_means$BounceRates[1])/bal_num_means$BounceRates[2],
+    ExitRates = (ExitRates - bal_num_means$ExitRates[1])/bal_num_means$ExitRates[2],
+    PageValues = (PageValues - bal_num_means$PageValues[1])/bal_num_means$PageValues[2],
+    SpecialDay = (SpecialDay - bal_num_means$SpecialDay[1])/bal_num_means$SpecialDay[2]
+)
+
+bal_tst_norm <- bal_test1 %>% mutate(
+    Administrative = (Administrative - bal_num_means$Administrative[1])/bal_num_means$Administrative[2],
+    Administrative_Duration = (Administrative_Duration - bal_num_means$Administrative_Duration[1])/bal_num_means$Administrative_Duration[2],
+    Informational = (Informational - bal_num_means$Informational[1])/bal_num_means$Informational[2],
+    Informational_Duration = (Informational_Duration - bal_num_means$Informational_Duration[1])/bal_num_means$Informational_Duration[2],
+    ProductRelated = (ProductRelated - bal_num_means$ProductRelated[1])/bal_num_means$ProductRelated[2],
+    ProductRelated_Duration = (ProductRelated_Duration - bal_num_means$ProductRelated_Duration[1])/bal_num_means$ProductRelated_Duration[2],
+    BounceRates = (BounceRates - bal_num_means$BounceRates[1])/bal_num_means$BounceRates[2],
+    ExitRates = (ExitRates - bal_num_means$ExitRates[1])/bal_num_means$ExitRates[2],
+    PageValues = (PageValues - bal_num_means$PageValues[1])/bal_num_means$PageValues[2],
+    SpecialDay = (SpecialDay - bal_num_means$SpecialDay[1])/bal_num_means$SpecialDay[2]
+)
+```
+
+
+# Logistic Regression
+
+```{r}
+logfit1 <- step(glm(Revenue ~ ., data = unbal_train, family = 'binomial'), direction = 'both', trace = 0)
+summary(logfit1)
+```
+
+```{r}
+car::vif(logfit1)
+```
+
+```{r}
+log_probs_test <- predict(logfit1, newdata = unbal_test, type = "response")
+log_preds_test <- as.factor(ifelse(log_probs_test >= 0.135, 1, 0))
+```
+
+```{r}
+resp_preds <- data.frame(
+  actual = unbal_test$Revenue,
+  log_unbal = log_preds_test
+)
+```
+
+```{r}
+caret::confusionMatrix(resp_preds$log_unbal, resp_preds$actual, positive = '1')
+```
+
+Sensitivity, Specificity, and Accuracy are pretty good, but precision is very bad. Basically, of the records that are said to be positive, I'm more often incorrect than I am correct. This is largely due to the imbalanced nature of the data, but still seems like there is room for improvement.
+
+
+### Unbalanced, Standardized, Logistic
+
+```{r}
+logfit2 <- step(glm(Revenue ~ ., data = unbal_trn_norm, family = 'binomial'), direction = 'both', trace = 0)
+summary(logfit2)
+```
+
+```{r}
+car::vif(logfit2)
+```
+
+```{r}
+norm_log_probs_test <- predict(logfit2, newdata = unbal_tst_norm, type = "response")
+norm_log_preds_test <- as.factor(ifelse(norm_log_probs_test >= 0.14, 1, 0))
+```
+
+```{r}
+resp_preds$log_unbal_norm <- norm_log_preds_test
+```
+
+```{r}
+caret::confusionMatrix(resp_preds$log_unbal_norm, resp_preds$actual, positive = '1')
+```
+
+still the same issues after normalizing, which is generally expected. We did, however, marginally improve each of the classification metrics. However we lost some interpretability to do so, so it may not be worth doing.
+
+### Balanced, unstandardized, Logistic
+```{r}
+logfit3 <- step(glm(Revenue ~ ., data = bal_train1, family = 'binomial'), direction = 'both', trace = 0)
+summary(logfit3)
+```
+
+```{r}
+car::vif(logfit3)
+```
+
+```{r}
+bal_log_probs_test <- predict(logfit3, newdata = bal_test1, type = "response")
+bal_log_preds_test <- as.factor(ifelse(bal_log_probs_test >= 0.5, 1, 0))
+```
+
+```{r}
+resp_preds_bal <- data.frame(actuals = bal_test1$Revenue,
+                             log_bal = bal_log_preds_test)
+```
+
+```{r}
+caret::confusionMatrix(resp_preds_bal$log_bal, resp_preds_bal$actual, positive = '1')
+```
+
+## Logistic Models: Interpretations
+
+#### Linearity Assumption
+
+```{r}
+linlog3 <- bal_train1 %>% select_if(is.numeric) %>% 
+  mutate(
+    probabilities = predict(logfit3, type = 'response'),
+    logit = log(probabilities/(1-probabilities))
+)
+```
+
+```{r}
+logit_scatter <- lapply(colnames(linlog3),
+       function(col) {
+        ggplot(linlog3,
+                aes(x = .data$logit, y = .data[[col]])) + 
+           geom_point() + 
+           geom_smooth(method = 'loess') + 
+           ggtitle(col)
+       }
+)
+
+logit_scatter[[1]] + geom_jitter() + logit_scatter[[3]] + geom_jitter() + logit_scatter[[5]]
+logit_scatter[[8]] + logit_scatter[[9]]
+
+#ggplot(linlog3, aes(logit, predictor.value))+
+#  geom_point(size = 0.5, alpha = 0.5) +
+#  geom_smooth(method = "loess") + 
+#  theme_bw() + 
+#  facet_wrap(~predictors, scales = "free_y")
+```
+
+Almost all of the numeric variables do not have a linear relationship with the logsitic model output, with the exception of Page Value.
+
+#### Outliers/ Influential points
+
+```{r}
+plot(logfit1, which = 4)
+```
+
+```{r}
+plot(logfit2, which = 4)
+```
+
+```{r}
+plot(logfit3, which = 4)
+```
+
+```{r}
+DescTools::HosmerLemeshowTest(fitted(logfit3), bal_train1$Revenue)$C
+```
+
+```{r}
+log3data <- broom::augment(logfit3) %>% 
+  mutate(index = 1:n())
+```
+
+```{r}
+ggplot(log3data, aes(index, .std.resid)) + 
+  geom_point(aes(color = Revenue), alpha = .5) +
+  theme_bw()
+```
+
+```{r}
+which(abs(log3data$.std.resid)>3) %>% length()
+```
+#### Multicollinearity
+
+```{r}
+car::vif(logfit3)
+```
+
+#### Logistic Assumptions Conclusions
+
+The logistic models violate several of the assumptions of a Logistic model, namely that there are several influential outliers and that few of the numeric variables have a linear relationship with the Revenue outcome in logit scale. There may still be a chance to rectify some of these issues, by removing outlier observations or transforming the data. 
+
+
+# SVM
+
+## Unbalanced, Normalized
+
+```{r}
+# decreased the scope of the tuning parameters to make the model run faster. Very slow otherwise.
+#form1 <- Revenue ~ .
+#set.seed(24601)
+#svmtune1 <- tune.svm(form1, data = unbal_train, kernel = 'linear', cost = seq(0.1, 1, by = 0.1))
+```
+
+```{r}
+#svmtune1$best.parameters
+```
+best params so far: 0.05 and 0.5
+
+```{r}
+#svmfit1 <- svm(form1, data = unbal_train, kernel = 'linear', cost = svmtune1$best.parameters$cost)
+#summary(svmfit1)
+```
+
+```{r}
+#resp_preds$svm_unbal <- predict(svmfit1, newdata = unbal_test, type = 'response')
+```
+
+```{r}
+#caret::confusionMatrix(resp_preds$svm_unbal, resp_preds$actual, positive = '1')
+```
+
+Unbalanced data leads to the SVM model performing pretty terribly. It is not bad in accuracy, but favors incidents where a revenue transaction is not performed. Since we do not have the ability to manipulate the probability threshold like was done for logistic regression, the only option to combat this is to use balanced data.
+
+## Balanced, Variables Selected
+
+```{r}
+set.seed(24601)
+form1 <- Revenue ~ PageValues + Month + TrafficType + VisitorType + Weekend + Browser + ProductRelated_Duration + Administrative_Duration + Informational_Duration + ExitRates
+bal_svmtune1 <- tune.svm(form1, data = bal_train1, kernel = 'linear', cost = seq(0.1, 2, by = 0.1))
+```
+
+```{r}
+bal_svmtune1$best.parameters
+```
+best cost parameter is 1.9
+
+```{r}
+bal_svmfit1 <- svm(form1, data = bal_train1, kernel = 'linear', cost = bal_svmtune1$best.parameters$cost)
+summary(bal_svmfit1)
+```
+
+```{r}
+resp_preds_bal$svm_bal <- predict(bal_svmfit1, newdata = bal_test1, type = 'response')
+```
+
+```{r}
+caret::confusionMatrix(resp_preds_bal$svm_bal, resp_preds_bal$actual, positive = '1')
+```
+
+```{r}
+svm_imp <- abs(t(bal_svmfit1$coefs) %*% bal_svmfit1$SV)
+```
+
+```{r}
+svm_imp_df <- data.frame(Variable = colnames(svm_imp), Importance = as.vector(svm_imp))
+svm_imp_df2 <- svm_imp_df[order(-svm_imp_df$Importance),]
+print(svm_imp_df2)
+```
+
+```{r}
+svm_imp_df2 %>% 
+  #filter(Importance >= 1.295415e-01) %>% 
+ggplot(aes(y = reorder(Variable, Importance), x = Importance)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.y = element_text(size = 7)) +
+  labs(title = "SVM Variable Importance", x = "Variable", y = "Importance")
+```
+
+```{r}
+svm_imp_df2 %>% #filter(Variable != 'PageValues') %>% 
+ggplot(aes(y = reorder(Variable, Importance), x = Importance)) +
+  geom_bar(stat = "identity") +
+  labs(title = "SVM Variable Importance", x = "Variable", y = "Importance") +
+  theme(axis.text.y = element_text(size = 7))
+```
+
+# Random Forest
+
+```{r}
+set.seed(24601)
+rffit1 <- rfsrc(Revenue ~ .,
+                data = unbal_train, 
+                importance = TRUE, 
+                ntree = 1000)
+```
+
+```{r}
+rffit1
+```
+
+```{r}
+rffit1$importance
+```
+
+```{r}
+data.frame(importance = rffit1$importance[,1]) %>%
+  tibble::rownames_to_column(var = "variable") %>%
+  ggplot(aes(x = reorder(variable,importance), y = importance)) +
+    geom_bar(stat = "identity")+
+    coord_flip() +
+     labs(x = "Variables", y = "Variable importance", title = 'Random Forest Variable Importance:\nUnbalanced Response')
+```
+
+```{r}
+data.frame(importance = rffit1$importance[,1]) %>%
+  tibble::rownames_to_column(var = "variable") %>%
+  filter(variable != 'PageValues') %>% 
+  ggplot(aes(x = reorder(variable,importance), y = importance)) +
+    geom_bar(stat = "identity")+
+    coord_flip() +
+     labs(x = "Variables", y = "Variable importance", title = 'Random Forest Variable Importance:\nUnbalanced Response')
+```
+
+```{r}
+rf_probs <- predict(rffit1, newdata = unbal_test)$predicted[,2]
+rf_preds <- as.factor(ifelse(rf_probs >= 0.165, 1, 0))
+```
+
+```{r}
+resp_preds$rf <- rf_preds
+```
+
+```{r}
+caret::confusionMatrix(resp_preds$rf, resp_preds$actual, positive = '1')
+```
+
+I don't really like how I have to adjust the threshold to get the random forest to work. Going to try some different methods.
+
+## Balanced Random Forest
+
+```{r}
+set.seed(24601)
+rffit2 <- rfsrc(Revenue ~ .,
+                data = bal_train1, 
+                importance = TRUE, 
+                ntree = 1000)
+```
+
+```{r}
+rffit2
+```
+
+```{r}
+rffit2$importance
+```
+
+```{r}
+rf_probs_bal <- predict(rffit2, newdata = bal_test1)$predicted[,2]
+rf_preds_bal <- as.factor(ifelse(rf_probs_bal >= 0.5, 1, 0))
+```
+
+```{r}
+resp_preds_bal$rf <- rf_preds_bal
+```
+
+```{r}
+caret::confusionMatrix(resp_preds_bal$rf, resp_preds_bal$actual, positive = '1')
+```
+
+```{r}
+data.frame(importance = rffit2$importance[,1]) %>%
+  tibble::rownames_to_column(var = "variable") %>%
+  ggplot(aes(x = reorder(variable,importance), y = importance)) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+     labs(x = "Variables", y = "Variable importance", title = 'Random Forest Variable Importance: Balanced Response')
+```
+
+```{r}
+data.frame(importance = rffit2$importance[,1]) %>%
+  tibble::rownames_to_column(var = "variable") %>%
+  filter(variable != 'PageValues') %>% 
+  ggplot(aes(x = reorder(variable,importance), y = importance)) +
+    geom_bar(stat = "identity")+
+    coord_flip() +
+     labs(x = "Variables", y = "Variable importance", title = 'Random Forest Variable Importance: Balanced Response')
+```
+
+The problem with balanced:
+```{r}
+bal_train1 %>% group_by(Month) %>% summarize(Rev = sum(ifelse(Revenue == '0', 0, 1)), NonRev=n() - Rev)
+```
+
+Categorical variable distributions change, and it's difficult to tell if it is in an even way based on the original distribution.
+
+```{r}
+sandbox_probs <- predict(rffit2, newdata = unbal_test)$predicted[,2]
+
+sandbox_test <- data.frame(actuals = unbal_test$Revenue,
+                           preds = as.factor(ifelse(sandbox_probs >= 0.5, 1, 0)))
+```
+
+```{r}
+caret::confusionMatrix(sandbox_test$preds, sandbox_test$actuals, positive = '1')
+```
+

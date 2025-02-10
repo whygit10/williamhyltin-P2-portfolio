@@ -60,8 +60,7 @@ format: html
       <br>
       <br>
       <br>
-      <p><em>"The work is mysterious and important."</em></p>
-      <p><strong>-Mark S.</strong></p>
+      <p><em>"It's pronounced data not data."</em></p>
     </div>
   </div>
 
@@ -92,8 +91,8 @@ format: html
   <br>
   <br>
   <br>
-  <p><em>It's pronounced data not data.</em></p>
-
+  <p><em>"The work is mysterious and important."</em> <br>
+    <strong>-Mark S.</strong></p>
   </div>
 </div>
 ```

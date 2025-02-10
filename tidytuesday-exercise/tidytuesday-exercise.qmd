@@ -1,5 +1,8 @@
 ---
 title: "Tidy Tuesday Exercise"
+format:
+  html:
+    page-layout: article
 ---
 
 For this exercise we are tasked with performing an analysis on the latest [Tidy Tuesday](https://github.com/rfordatascience/tidytuesday) dataset. Given that the exercise is intended to give us an opportunity for an end to end analysis, I want to use this as an opportunity to show my thought process when it comes to an analysis. Likely this means there will be plenty of rambling and word vomit, but my intended focus is the work flow itself and less the end result. I will save the polished up manuscripts and final results for larger projects.  

@@ -1,0 +1,552 @@
+---
+title: "DA 6813 Case Study 4 Customer Retention"
+author: "Will Hyltin, Holly Milazzo and Tim Harrison"
+date: today
+format: 
+  html:
+    code-fold: true # Folds code by default
+    number-sections: true # Numbered sections
+    df-print: paged # Nice table format
+    fig-align: center # Centers figures
+    fig-width: 6 # Adjust figure size
+    fig-height: 4
+    reference-location: section # Valid value for citation references
+    page-layout: article
+---
+
+# Executive Summary
+
+This analysis focused on predicting customer acquisition and retention to optimize marketing strategies and resource allocation. Using the `acquisitionRetention` dataset, three models—Logistic Regression, Support Vector Machines (SVM), and Random Forest—were evaluated to classify prospects as "acquired" or "not acquired." Random Forest emerged as the best-performing model, achieving the highest sensitivity (91.2%) while maintaining high accuracy (75%) in the acquisition task, demonstrating its reliability in identifying prospects likely to convert into customers.
+
+For retention prediction, Random Forest was again employed to forecast customer duration, leveraging post-acquisition variables such as retention expenditures, purchase frequency, and cross-category buying behavior. Retention expenditures were identified as the most significant predictor, though a diminishing return effect was observed, suggesting the need to optimize spending. 
+
+Key recommendations include exploring additional external factors, refining spending thresholds for retention efforts, and evaluating advanced ensemble techniques to further enhance predictive accuracy. These insights provide actionable guidance for improving customer acquisition and retention strategies, enabling more efficient resource allocation and sustained business growth.
+
+# Problem Statement
+
+In today’s competitive market, managing customer acquisition and retention is crucial for maintaining long-term business success. Companies face the dual challenge of predicting which current customers are at risk of ending their relationship and identifying new customers likely to join. Accurate predictions enable firms to allocate resources effectively, targeting at-risk customers with retention strategies and high-potential prospects with acquisition incentives. This study aims to develop predictive models using the `acquisitionRetention` dataset to forecast customer acquisition and retention, specifically focusing on the likelihood of acquisition and the duration of customer relationships. The analysis will involve building and evaluating models such as Random Forest, Decision Trees, and Logistic Regression to identify significant predictors and improve model performance. Insights gained from this analysis will help optimize marketing strategies, reduce campaign costs, and maximize the efficient use of firm resources.
+
+# Additional Sources
+
+Random forests are particularly well-suited for customer acquisition and retention analysis due to their ability to handle complex, non-linear relationships and interactions between variables. Unlike traditional linear models, random forests can automatically capture intricate patterns in customer behavior without requiring explicit specification of these relationships. This capability is crucial when predicting customer retention and acquisition, as it allows the model to identify subtle, high-order interactions between demographic, behavioral, and transactional features that influence customer decisions. Additionally, random forests provide variable importance measures, which help businesses understand the key drivers of customer churn and acquisition, enabling more targeted marketing strategies (Breiman, 2001). The robustness of random forests against overfitting, even in the presence of noisy data, further enhances their reliability in dynamic and uncertain market environments, making them an ideal choice for optimizing customer relationship management.
+
+Breiman, L. (2001) Random Forests. Machine Learning, 45, 5-32.
+http://dx.doi.org/10.1023/A:1010933404324
+
+# Data Exploration and Preprocessing
+
+
+The `acquisitionRetention` dataset is designed to address two key prediction tasks: (1) identifying which prospects are likely to be acquired and (2) forecasting the retention duration for acquired customers. To meet the requirements of these tasks, different subsets of variables are selected to ensure data integrity and prevent leakage.
+
+To prepare the data for modeling, we centered and scaled numeric variables when applying SVM and Logistic Regression to ensure comparability and improve model performance. However, for Random Forest, the raw data was used, as this model is not sensitive to feature scaling.
+
+### **Variables Used to Predict Customer Acquisition**
+
+For the customer acquisition task, only variables available prior to acquisition were used to avoid data leakage. Post-acquisition variables, such as `duration` and `profit`, were excluded because they rely on outcomes that would not be known at the time of prediction. The following variables were used:
+
+- **`acq_exp`**: Total dollars spent on acquiring a prospect.
+- **`industry`**: Indicates whether the prospect operates in the B2B sector.
+- **`revenue`**: Annual sales revenue of the prospect’s firm.
+- **`employees`**: Number of employees in the prospect’s firm.
+
+Initially, **`acq_exp_sq`** (the square of acquisition expenditure) was included to capture potential non-linear effects. However, this lead to issues with multicollinearity, diminishing our ability to understand the importance of the individual variables, relative to one another.
+
+These selected variables reflect the financial and business characteristics of each prospect, along with the firm's investment in acquisition efforts. They provide relevant and actionable insights into the likelihood of acquiring a customer while maintaining the model’s validity and interpretability. 
+
+
+
+# Methodology
+
+To conduct the analysis, we evaluated three models—Logistic Regression, Support Vector Machines (SVM), and Random Forest—to classify prospects as "acquired" or "not acquired," using pre-acquisition variables such as `acq_exp`, `industry`, `revenue`, and `employees` to avoid data leakage. The dataset was split into training and testing sets, and numeric variables were normalized for SVM and Logistic Regression, while Random Forest was applied to the raw data due to its robustness to scaling. Each model’s performance was assessed using accuracy, precision, recall, and AUC-ROC. Logistic Regression’s assumption of linearity and independence among predictors, as well as SVM’s reliance on normalized inputs and computational demands, limited their suitability for this task. Random Forest outperformed the other models, excelling in handling non-linear relationships, multicollinearity, and interactions, making it the preferred acquisition model. The Random Forest model was then applied to the full dataset to identify acquired customers, creating a subset for those predicted to be acquired. For retention modeling, Random Forest was used again, leveraging its ability to capture complex relationships and interactions among behavioral and post-acquisition variables such as `freq`, `crossbuy`, and `ret_exp`. Again, variables in the dataset that were square terms of other variables were excluded, to ensure proper measures of variable importance, and because Random Forest captures non-linear relationships between variables. Model performance for retention was evaluated using Root Mean Squared Error (RMSE). This approach ensured that the methods were tailored to the task requirements, addressing model assumptions and limitations while maintaining interpretability.
+
+
+
+---
+
+
+
+# Findings
+
+The analysis of customer acquisition and retention utilized Logistic Regression, Support Vector Machines (SVM), and Random Forest models to classify prospects as “acquired” or “not acquired” and to predict retention duration for acquired customers. 
+
+#### **Customer Acquisition Findings**
+Random Forest demonstrated superior performance in predicting acquisition outcomes compared to Logistic Regression and SVM. While all models achieved comparable accuracy of 74%–75%, Random Forest excelled with the highest sensitivity (91.2%) while maintaining high accuracy (75%), indicating its robustness in identifying acquired customers. SVM and Logistic Regression performed similarly, with slightly lower sensitivity scores of 89.7%, and similar measures of accuracy (74% - 75%). Random Forest's ability to handle multicollinearity and non-linear relationships, combined with its interpretability via variable importance measures, solidified its position as the optimal model for acquisition predictions. 
+
+It's important to note the method of applying the Random Forest model to the full dataset does result in perfect prediction on the training data, because the Random Forest Model is built on Decision Trees it always "knows the answer" for records that it was trained on. This means that the duration dataset will contain mostly correct values for acquisition, which may not be the case when applied in practice and the acqusition information is not known ahead of time.
+
+#### **Customer Retention Findings**
+The retention duration prediction was conducted using a Random Forest regression model. Key variables influencing retention included `ret_exp` (retention expenditures), `freq` (purchase frequency), and `crossbuy` (number of product categories purchased). Cross-buy behavior emerged as the most important predictor, with Retention Expenditure as a close second, falling short only due to a diminishing return effect revealed by the Partial Dependence Plot. After a certain expenditure level, further increases had minimal impact on retention duration. Additional Partial Dependence Plots were observed for two other variables: frequency and Acquisition Expenditure. While these plots do seem to indicate a non-linear relationship between the variables and duration, their impact was much less pronounced, being variables that ranked lower in variable importance
+
+Performance metrics for the retention model indicated robust predictions, with a Root Mean Square Error (RMSE) of 50.89 and a Mean Absolute Error (MAE) of 37.33. This generally indicates that predictions for duration will be, on average, between 37.33 and 50.89 days of the actual value. While the Mean Absolute Percentage Error (MAPE) was high, this can be attributed to the existence of 0-valued durations, which occurred due to the use of the predictions on acquired customer where they were not actually acquired. This underscores the importance of nuanced insights from the model rather than solely relying on error metrics.
+
+
+```{r, echo=FALSE}
+pacman::p_load(survival, randomForestSRC, MASS, SMCRM, tidyverse, here, skimr, corrplot, rpart, e1071,caret,dplyr)
+```
+
+```{r, echo=FALSE}
+data(acquisitionRetention)
+rawdf <- acquisitionRetention
+```
+
+
+```{r, echo=FALSE}
+rawdf <- rawdf %>% mutate_at(c('industry', 'acquisition'), as.factor)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+rawdf %>% select_if(is.numeric) %>% cor() %>% corrplot(method = 'number', number.cex = 0.6)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+# Survival Plot
+
+surv <- data.frame(duration = seq(0,max(rawdf$duration), by = 1))
+surv1 <- surv %>% 
+  group_by(duration) %>% 
+  mutate(dist = sum(rawdf$duration > duration))
+#greater than removes all of the results where duration == 0, i.e. those not acquired
+
+surv1 %>% ggplot(aes(x = duration, y = dist)) +
+  geom_line() +
+  scale_y_continuous(name = 'Count', sec.axis = sec_axis(transform = ~./max(surv1$dist), name = 'Distribution'))
+```
+
+
+  
+```{r, echo=FALSE, include=FALSE}
+sum(rawdf[which(rawdf$acquisition == 0),]$duration)
+```
+
+```{r, echo=FALSE, include=FALSE}
+rawdf %>% select(ends_with('sq')) %>% names()
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+acq_part <- sample(nrow(rawdf),0.8*nrow(rawdf),replace = F)
+acq_train1 <- rawdf[acq_part,]
+acq_test1 <- rawdf[-acq_part,]
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+acq_train1 <- acq_train1 %>% select(-c(profit, duration, ret_exp, ret_exp_sq, freq, freq_sq, crossbuy, sow)) 
+acq_test1 <- acq_test1 %>% select(-c(profit, duration, ret_exp, ret_exp_sq, freq, freq_sq, crossbuy, sow)) 
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+logfit1 <- step(glm(acquisition ~ . -customer, 
+                   data = acq_train1, family = binomial), 
+               direction = "backward", trace = 0)
+```
+
+```{r, echo=FALSE, include=FALSE}
+summary(logfit1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+car::vif(logfit1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+logfit2 <- step(glm(acquisition ~ . -acq_exp_sq -customer, 
+                   data = acq_train1, family = binomial), 
+               direction = "backward", trace = 0)
+```
+
+```{r, echo=FALSE, include=FALSE}
+summary(logfit2)
+```
+
+```{r, echo=FALSE, include=FALSE}
+car::vif(logfit2)
+```
+
+```{r, echo=FALSE, include=FALSE}
+plot(logfit2)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+acq_preds <- data.frame(actual = acq_test1$acquisition,
+                        log_preds = predict(logfit2, acq_test1, type = 'response')) %>% mutate(
+                          log_preds = as.factor(ifelse(log_preds >= 0.5, 1, 0))
+                        )
+```
+
+
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+svmfit1 <- svm(acquisition ~ acq_exp + industry + revenue + employees, 
+               data = acq_train1, 
+               type = "C-classification", 
+               kernel = "radial",
+               cost = 1, #<--we can adjust this if needed
+               scale = TRUE
+                ) 
+
+
+summary(svmfit1)
+
+```
+
+```{r, echo=FALSE, include=FALSE}
+svm_preds <- predict(svmfit1, acq_test1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+acq_preds$svm_preds <- svm_preds
+```
+
+
+
+```{r, echo=FALSE, include=FALSE}
+svm_cm <- caret::confusionMatrix(acq_preds$svm_preds, 
+                                 reference = acq_preds$actual, 
+                                 positive = '1')
+print(svm_cm)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+tune.out <- tune(svm, 
+                 acquisition ~ acq_exp + industry + revenue + employees, 
+                 data = acq_train1, 
+                 kernel = "radial",
+                 ranges = list(gamma = seq(.01,.1, by = .01), cost = seq(.1, 1, by = .1)))
+
+svmfit2 <- tune.out$best.model
+summary(svmfit2)
+```
+
+```{r, echo=FALSE, include=FALSE}
+svm_preds2 <- predict(svmfit2, acq_test1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+acq_preds$svm_preds2 <- svm_preds2
+```
+
+```{r, echo=FALSE, include=FALSE}
+svm_cm2 <- caret::confusionMatrix(acq_preds$svm_preds2, 
+                                  reference = acq_preds$actual, 
+                                  positive = '1')
+print(svm_cm2)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+dtfit1 <- rpart(acquisition ~ . -customer, data = acq_train1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+summary(dtfit1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+rattle::fancyRpartPlot(dtfit1, sub = '')
+```
+
+```{r, echo=FALSE, include=FALSE}
+acq_preds$dt_preds <- predict(dtfit1, acq_test1)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+rffit1 <- rfsrc(acquisition ~ acq_exp + industry + revenue + employees,
+                data = acq_train1, 
+                importance = TRUE, 
+                ntree = 100)
+```
+
+```{r, echo=FALSE, include=FALSE}
+rffit1
+```
+
+```{r, echo=FALSE, include=FALSE}
+rffit1$importance
+```
+
+```{r, echo=FALSE, include=FALSE}
+data.frame(importance = rffit1$importance[,3]) %>%
+  tibble::rownames_to_column(var = "variable") %>%
+  ggplot(aes(x = reorder(variable,importance), y = importance)) +
+    geom_bar(stat = "identity", fill = "orange", color = "black")+
+    coord_flip() +
+     labs(x = "Variables", y = "Variable importance")
+```
+
+```{r, echo=FALSE, include=FALSE}
+acq_mindepth <- max.subtree(rffit1, sub.order = T)
+```
+
+```{r, echo=FALSE, include=FALSE}
+print(round(acq_mindepth$order, 3)[,1])
+```
+
+```{r, echo=FALSE, include=FALSE}
+find.interaction(rffit1, method = 'vimp', importance = 'permute')
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+acq_test_prob <- predict(rffit1, newdata = acq_test1)$predicted[,2]
+acq_preds$rf_preds <- acq_test_prob
+acq_preds <- acq_preds %>% mutate(rf_preds = as.factor(ifelse(rf_preds >= 0.5, 1, 0)))
+```
+
+
+
+```{r, echo=FALSE}
+acq_raw_prob <- predict(rffit1, newdata = select(rawdf, names(acq_test1)))$predicted[,2]
+durdf <- rawdf %>% bind_cols(preds = acq_raw_prob) %>% mutate(
+  acq_preds = as.factor(ifelse(preds >= 0.5, 1, 0))
+)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+# Load required libraries
+
+
+# Calculate confusion matrices for each model
+conf_log <- caret::confusionMatrix(acq_preds$log_preds, reference = acq_preds$actual, positive = '1')
+conf_svm <- caret::confusionMatrix(acq_preds$svm_preds, reference = acq_preds$actual, positive = '1')
+conf_rf <- caret::confusionMatrix(acq_preds$rf_preds, reference = acq_preds$actual, positive = '1')
+conf_full_data <- caret::confusionMatrix(durdf$acq_preds, reference = durdf$acquisition, positive = '1')
+
+# Extract relevant metrics
+results <- data.frame(
+  Model = c("Logistic Regression", "SVM", "Random Forest"),
+  Accuracy = c(
+    conf_log$overall["Accuracy"], 
+    conf_svm$overall["Accuracy"], 
+    conf_rf$overall["Accuracy"]
+  ),
+  Sensitivity = c(
+    conf_log$byClass["Sensitivity"], 
+    conf_svm$byClass["Sensitivity"], 
+    conf_rf$byClass["Sensitivity"]
+  ),
+  Specificity = c(
+    conf_log$byClass["Specificity"], 
+    conf_svm$byClass["Specificity"], 
+    conf_rf$byClass["Specificity"]
+  )
+)
+
+# Round values for better readability
+results<- results %>%
+  mutate(across(Accuracy:Specificity, round, 3))
+
+# Print the results in a clean table
+knitr::kable(results, caption = "Model Performance Metrics")
+```
+
+```{r, echo=FALSE, include=FALSE}
+durdf1 <- durdf %>% filter(acq_preds == 1) %>% select(-acquisition)
+set.seed(321)
+dur_part <- sample(nrow(durdf1),0.8*nrow(durdf1),replace = F)
+dur_train1 <- durdf1[dur_part,]
+dur_test1 <- durdf1[-dur_part,]
+```
+
+```{r, echo=FALSE, include=FALSE}
+names(dur_train1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(321)
+rfdur <- rfsrc(duration ~ profit + acq_exp + ret_exp + freq + crossbuy + sow + industry + revenue + employees, #-customer -acq_exp_sq -ret_exp_sq -freq_sq,
+                data = dur_train1, 
+                importance = TRUE, 
+                ntree = 500)
+```
+
+```{r, echo=FALSE, include=FALSE}
+rfdur
+```
+
+```{r,echo=FALSE}
+data.frame(importance = rfdur$importance) %>%
+  tibble::rownames_to_column(var = "variable") %>%
+  ggplot(aes(x = reorder(variable,importance), y = importance)) +
+    geom_bar(stat = "identity", fill = "orange", color = "black")+
+    coord_flip() +
+     labs(x = "Variables", y = "Variable importance")
+#     theme_nice 
+```
+
+```{r,echo=FALSE,include=FALSE}
+rfdur$importance
+```
+
+```{r, echo=FALSE, include=FALSE}
+dur_mindepth <- max.subtree(rfdur,
+                        sub.order = TRUE)
+```
+
+```{r, echo=FALSE, include=FALSE}
+print(round(dur_mindepth$order, 3)[,1])
+```
+
+```{r, echo=FALSE, include=FALSE}
+dur_mindepth$sub.order
+```
+
+```{r, echo=FALSE, include=FALSE}
+find.interaction(rfdur,
+                      method = "vimp",
+                      importance = "permute")
+```
+
+```{r, echo=FALSE, include=FALSE}
+# regression with linear specification
+dur_reg_lin <- lm(duration ~  .-acq_exp_sq -ret_exp_sq -freq_sq -customer, data = select(dur_train1, -acq_preds))
+dur_reg_exp <- lm(duration ~  .-customer, data = select(dur_train1, -acq_preds))
+```
+
+```{r, echo=FALSE, include=FALSE}
+summary(dur_reg_lin)
+summary(dur_reg_exp)
+```
+
+```{r, echo=FALSE, include=FALSE}
+min(rfdur$xvar$ret_exp)
+max(rfdur$xvar$ret_exp)
+ret_exp_seq = seq(0,1100,20)
+```
+
+```{r, echo=FALSE, include=FALSE}
+min(rfdur$xvar$freq)
+max(rfdur$xvar$freq)
+freq_seq <- seq(1,21,1)
+```
+
+```{r, echo=FALSE, include=FALSE}
+min(rfdur$xvar$acq_exp)
+max(rfdur$xvar$acq_exp)
+acq_exp_seq <- seq(140,880,20)
+```
+
+```{r, echo=FALSE, include=FALSE}
+retx_me <- randomForestSRC::partial(rfdur,
+                           partial.xvar = "ret_exp",
+                           partial.values = ret_exp_seq)
+
+retx_me_means <- retx_me$regrOutput$duration %>% colMeans()
+```
+
+```{r, echo=FALSE, include=FALSE}
+retx_me_df <-
+  data.frame(pred_duration = retx_me_means, ret_exp_seq = ret_exp_seq)
+```
+
+```{r, echo=FALSE}
+ggplot(retx_me_df, aes(x = ret_exp_seq, y = pred_duration)) +
+  geom_point(shape = 21, color = "purple", size = 2, stroke = 1.2)+
+  geom_smooth(method = "lm", formula = y ~ poly(x,6), se = FALSE, color = "black")+ # try with other values 
+  labs(x = "Retention Expenditures in $", y = "Predicted duration", title = 'Partial Dependence Plot: Retention Expenditure') +
+  scale_x_continuous(breaks = seq(0,1200,120))
+```
+
+```{r, echo=FALSE, include=FALSE}
+freq_me <- randomForestSRC::partial(rfdur,
+                           partial.xvar = "freq",
+                           partial.values = freq_seq)
+
+freq_me_means <- freq_me$regrOutput$duration %>% colMeans()
+```
+
+```{r, echo=FALSE, include=FALSE}
+freq_me_df <-
+  data.frame(pred_duration = freq_me_means, freq_seq = freq_seq)
+```
+
+```{r, echo=FALSE}
+ggplot(freq_me_df, aes(x = freq_seq, y = pred_duration)) +
+  geom_point(shape = 21, color = "purple", size = 2, stroke = 1.2)+
+  geom_smooth(method = "lm", formula = y ~ poly(x,5), se = FALSE, color = "black")+ # try with other values 
+  labs(x = "Frequency of Purchases", y = "Predicted duration", title = 'Partial Dependence Plot: Frequency') +
+  scale_x_continuous(breaks = seq(0,21,3))
+```
+
+```{r, echo=FALSE, include=FALSE}
+acqx_me <- randomForestSRC::partial(rfdur,
+                           partial.xvar = "acq_exp",
+                           partial.values = acq_exp_seq)
+
+acqx_me_means <- acqx_me$regrOutput$duration %>% colMeans()
+```
+
+```{r, echo=FALSE, include=FALSE}
+acqx_me_df <-
+  data.frame(pred_duration = acqx_me_means, acq_exp_seq = acq_exp_seq)
+```
+
+```{r, echo=FALSE}
+ggplot(acqx_me_df, aes(x = acq_exp_seq, y = pred_duration)) +
+  geom_point(shape = 21, color = "purple", size = 2, stroke = 1.2)+
+  geom_smooth(method = "lm", formula = y ~ poly(x,9), se = FALSE, color = "black")+ # try with other values 
+  labs(x = "Acquisition Expenditures in $", y = "Predicted duration", title = 'Partial Dependence Plot: Acquisiton Expenditure') +
+  scale_x_continuous(breaks = seq(150,1000,150))
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+dur_preds <- data.frame(actual = dur_test1$duration, 
+                        preds = predict(rfdur, dur_test1)$predicted)
+```
+
+```{r, echo=FALSE}
+# Calculate metrics
+rmse <- sqrt(mean((dur_preds$actual - dur_preds$preds)^2))
+mae <- mean(abs(dur_preds$actual - dur_preds$preds))
+me <- mean(dur_preds$actual - dur_preds$preds)
+mape <- mean(abs(dur_preds$actual - dur_preds$preds) * 100 / (dur_preds$actual + 0.1))
+
+# Create a data frame for results
+results <- data.frame(
+  Metric = c("RMSE", "MAE", "ME", "MAPE"),
+  Value = c(rmse, mae, me, mape)
+)
+
+# Round values for better readability
+results <- results %>%
+  mutate(Value = round(Value, 3))
+
+# Print the results in a clean table
+knitr::kable(results, caption = "Error Metrics for Predictions")
+```
+# Conclusion
+
+This analysis provided valuable insights into customer acquisition and retention, leveraging predictive models to inform data-driven strategies. Random Forest emerged as the most effective model for both acquisition and retention predictions, demonstrating superior performance in handling complex, non-linear relationships and providing interpretable results through variable importance measures. 
+
+Key findings include the importance of retention expenditures, purchase frequency, and cross-category buying as significant predictors of customer duration. However, the diminishing returns observed in retention expenditures suggest that firms should optimize spending thresholds to maximize cost efficiency. Additionally, the application of Random Forest to classify acquisition outcomes yielded high accuracy and sensitivity, making it a reliable tool for identifying prospects likely to convert into customers.
+
+
+
+# Appendix
+
+In addition to the primary analyses detailed in the main report, several exploratory and supporting methods were performed to validate conclusions and refine insights. These methods, documented in the attached sandbox file, include:
+
+1. **Correlation Analysis**:
+   - A correlation matrix was used to explore relationships among variables, identifying potential multicollinearity issues. This analysis informed variable selection and preprocessing steps for models like Logistic Regression and SVM, ensuring robust inputs.
+
+2. **Exploratory Analysis**:
+   - Initial data exploration involved visualizations to understand distributions and relationships among variables. These insights, referenced in the sandbox file, helped highlight key data characteristics such as the skewed retention durations and the variability in acquisition expenditures.
+
+3. **Testing Alternative Models**:
+   - Several models, including Decision Trees and basic linear models, were tested for comparative purposes. While these models were not selected for the final analysis, their performance helped confirm the reliability of the chosen methods and supported the final conclusions.
+
+These additional analyses, as documented in the sandbox file, provided valuable context and helped validate the predictive models and findings. They reflect the rigor of the analytical approach and the effort to ensure robust, actionable insights.

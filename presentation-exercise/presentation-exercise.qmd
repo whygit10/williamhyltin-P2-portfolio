@@ -1,6 +1,9 @@
 ---
 title: "Presentation Exercise"
 author: "William Hyltin ror910"
+format:
+  html:
+    page-layout: article
 ---
 
 ## Publication Quality Chart

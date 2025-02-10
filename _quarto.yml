@@ -10,10 +10,14 @@ website:
         file: aboutme.qmd
       - text: "Projects"
         menu:
-          - text: "Starter Analysis Exercise"
-            file: starter-analysis-exercise/products/report/starter-analysis-report.qmd
-          - text: "R Coding Exercise"
-            file: coding-exercise/coding-exercise.qmd
+          - text: "Case Study 1"
+            file: case-study-1/case-study-1-write-up.qmd
+          - text: "Case Study 2"
+            file: case-study-2/case-study-2-write-up.qmd
+          - text: "Case Study 3"
+            file: case-study-3/case-study-3-write-up.qmd
+          - text: "Case Study 4"
+            file: case-study-4/case-study-4-write-up.qmd
           - text: "Presentation Exercise"
             file: presentation-exercise/presentation-exercise.qmd
           - text: "Tidy Tuesday Exercise"

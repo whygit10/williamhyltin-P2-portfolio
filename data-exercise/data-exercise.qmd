@@ -1,6 +1,9 @@
 ---
-title: "Data Exercise"
-author: 'William Hyltin' 
+title: "Complex Data Exercise"
+author: 'William Hyltin'
+format:
+  html:
+    page-layout: article
 ---
 
 This exercise will load, process, and explore a text dataset that consists of employee reviews of their current and former employers on LinkedIn. The dataset can be found from Kaggle [here.]('https://www.kaggle.com/datasets/muhammedabdulazeem/employer-review-about-their-organization/')
